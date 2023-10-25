@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "765066051639",
+    "project_id": "nosh-150-qc",
+    "storage_bucket": "nosh-150-qc.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:765066051639:android:17e6ae2e0c56e05547bfb2",
+        "android_client_info": {
+          "package_name": "com.example.quality_control_nosh"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAi3VLvRAODfhmau9zPpbnu-88gwGzfYvc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
