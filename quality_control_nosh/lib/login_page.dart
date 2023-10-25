@@ -140,7 +140,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     Text(
-                      " Register",
+                      " contact Nosh",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.blue,
