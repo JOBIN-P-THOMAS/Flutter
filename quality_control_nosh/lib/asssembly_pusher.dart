@@ -1,21 +1,21 @@
-// ignore_for_file: prefer_const_constructors, use_key_in_widget_constructors, library_private_types_in_public_api, prefer_const_constructors_in_immutables, prefer_interpolation_to_compose_strings
+// ignore_for_file: prefer_const_constructors, use_key_in_widget_constructors, prefer_const_constructors_in_immutables, library_private_types_in_public_api, prefer_interpolation_to_compose_strings
 
 import 'package:flutter/material.dart';
 import 'package:usb_serial/usb_serial.dart';
 import 'dart:typed_data';
 import 'dart:async';
 
-class AssemblyDetailPageStirrer extends StatefulWidget {
+class AssemblyDetailPagePusher extends StatefulWidget {
   final String assemblyName;
 
-  AssemblyDetailPageStirrer(this.assemblyName);
+  AssemblyDetailPagePusher(this.assemblyName);
 
   @override
-  _AssemblyDetailPageStirrerState createState() =>
-      _AssemblyDetailPageStirrerState();
+  _AssemblyDetailPagePusherState createState() =>
+      _AssemblyDetailPagePusherState();
 }
 
-class _AssemblyDetailPageStirrerState extends State<AssemblyDetailPageStirrer> {
+class _AssemblyDetailPagePusherState extends State<AssemblyDetailPagePusher> {
   UsbPort? port;
   String response = '';
   TextEditingController commandController = TextEditingController();
@@ -169,7 +169,7 @@ class _AssemblyDetailPageStirrerState extends State<AssemblyDetailPageStirrer> {
           padding: const EdgeInsets.all(10.0),
           child: Column(
             children: [
-              _buildCheckContainer('Top Liiimit', checkStatus[0]),
+              _buildCheckContainer('Top Limit', checkStatus[0]),
               _buildCheckContainer('Bottom Limit', checkStatus[1]),
               _buildCheckContainer('Motor Encoder Check', checkStatus[2]),
               _buildCheckContainer('BLDC + Limit Check', checkStatus[3]),

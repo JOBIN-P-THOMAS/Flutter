@@ -38,8 +38,12 @@ dependencies:
   firebase_analytics: ^10.6.2
   firebase_core: ^2.20.0
   firebase_auth: ^4.12.0
-  audioplayers: ^5.2.0
+
   usb_serial: ^0.5.0
+  flutter_barcode_scanner: ^2.0.0
+  qr_code_scanner: ^1.0.1
+
+  
 
 
 dev_dependencies:
@@ -70,6 +74,7 @@ flutter:
     - lib/assets/logo.png
     - lib/assets/ing.png
     - lib/assets/spice.png
+    - lib/assets/beep.mp3
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
