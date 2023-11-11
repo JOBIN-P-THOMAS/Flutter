@@ -70,23 +70,52 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: Center(
-        child: Container(
-          width: 20,
-          decoration: BoxDecoration(
-            color: Colors.black,
+      body: Column(
+        children: [
+          SizedBox(height: 20),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: GestureDetector(
+              onTap: _scanQRCode,
+              child: Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(15),
+                  color: Colors.orange,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Tap to Scan Assembly QR',
+                      style: TextStyle(color: Colors.white, fontSize: 18.0),
+                    ),
+                    Icon(
+                      Icons.qr_code,
+                      color: Colors.white,
+                      size: 30,
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
-          child: Text(
-            'dlmf c',
-            style: TextStyle(color: Colors.white),
-            textAlign: TextAlign.center,
+          Expanded(
+            child: Center(
+              child: Container(
+                width: 20,
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                ),
+                child: Text(
+                  'dlmf c',
+                  style: TextStyle(color: Colors.white),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
           ),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _scanQRCode,
-        tooltip: 'Scan QR Code',
-        child: Icon(Icons.qr_code),
+        ],
       ),
     );
   }
