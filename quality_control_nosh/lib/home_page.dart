@@ -44,7 +44,7 @@ class _SettingsPageState extends State<SettingsPage> {
   bool allowZeroSelection = true;
 
   late SharedPreferences prefs;
-  late String? selectedAssembly;
+  late String? selectedAssembly = 'Select an assembly';
 
   @override
   void initState() {
@@ -281,6 +281,7 @@ class _DropdownButtonWidgetState extends State<DropdownButtonWidget> {
     'OIL',
     'SPICE'
   ];
+
   bool allowZeroSelection = true;
   late String? selectedAssembly;
 
@@ -293,12 +294,16 @@ class _DropdownButtonWidgetState extends State<DropdownButtonWidget> {
   _loadSavedAssembly() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? savedAssembly = prefs.getString('selectedAssembly');
-    if (savedAssembly != null) {
-      setState(() {
-        selectedValues = [savedAssembly];
-        selectedAssembly = savedAssembly; // Update selectedAssembly
-      });
-    }
+
+    setState(() {
+      selectedValues = savedAssembly != null ? [savedAssembly] : [];
+      selectedAssembly =
+          selectedValues.isNotEmpty && options.contains(savedAssembly)
+              ? savedAssembly
+              : options.isNotEmpty
+                  ? options.first
+                  : null;
+    });
   }
 
   @override
@@ -314,7 +319,7 @@ class _DropdownButtonWidgetState extends State<DropdownButtonWidget> {
               borderRadius: BorderRadius.circular(15),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: DropdownButtonFormField<String>(
+            child: DropdownButtonFormField<String?>(
               value: selectedAssembly,
               onChanged: allowZeroSelection
                   ? (String? value) {
@@ -337,8 +342,8 @@ class _DropdownButtonWidgetState extends State<DropdownButtonWidget> {
               borderRadius: BorderRadius.circular(20),
               icon: Icon(Icons.arrow_drop_down),
               style: TextStyle(fontSize: 16),
-              items: options.map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
+              items: options.map<DropdownMenuItem<String?>>((String value) {
+                return DropdownMenuItem<String?>(
                   value: value,
                   child: Text(
                     value,
