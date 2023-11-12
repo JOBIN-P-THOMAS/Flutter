@@ -1,3 +1,5 @@
+// ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors, sized_box_for_whitespace, prefer_const_literals_to_create_immutables, sort_child_properties_last, library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -146,7 +148,15 @@ class _SettingsPageState extends State<SettingsPage> {
               children: [
                 Container(
                   height: 400,
-                  child: SettingsPageContent(),
+                  child: SettingsPageContent(
+                    selectedAssembly:
+                        selectedValues.isNotEmpty ? selectedValues.first : null,
+                    onAssemblyChanged: (String? newValue) {
+                      setState(() {
+                        selectedValues = [newValue!];
+                      });
+                    },
+                  ),
                 ),
               ],
             ),
@@ -173,6 +183,13 @@ class _SettingsPageState extends State<SettingsPage> {
 }
 
 class SettingsPageContent extends StatelessWidget {
+  final String? selectedAssembly;
+  final Function(String?) onAssemblyChanged;
+  const SettingsPageContent({
+    Key? key,
+    required this.selectedAssembly,
+    required this.onAssemblyChanged,
+  }) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -264,6 +281,29 @@ class _DropdownButtonWidgetState extends State<DropdownButtonWidget> {
     'SPICE'
   ];
   bool allowZeroSelection = true;
+  late String? selectedAssembly;
+
+  @override
+  void didUpdateWidget(covariant DropdownButtonWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _loadSavedAssembly();
+  }
+
+  _loadSavedAssembly() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? savedAssembly = prefs.getString('selectedAssembly');
+    if (savedAssembly != null) {
+      setState(() {
+        selectedAssembly = savedAssembly;
+      });
+    }
+
+    if (selectedAssembly != null) {
+      setState(() {
+        selectedValues = [selectedAssembly!];
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -352,8 +392,14 @@ class _DropdownButtonWidgetState extends State<DropdownButtonWidget> {
 
   _saveSelectedAssembly() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString('selectedAssembly',
-        selectedValues.isNotEmpty ? selectedValues.first : '');
+    String savedAssembly = selectedAssembly ?? '';
+
+    prefs.setString('selectedAssembly', savedAssembly);
+
+    // Update the selectedAssembly in the state
+    setState(() {
+      selectedAssembly = savedAssembly;
+    });
   }
 
   _showSnackbar() {
@@ -364,7 +410,7 @@ class _DropdownButtonWidgetState extends State<DropdownButtonWidget> {
           style: TextStyle(color: Colors.white),
         ),
         duration: Duration(seconds: 2),
-        backgroundColor: Colors.green, // Customize the background color
+        backgroundColor: Colors.green,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
