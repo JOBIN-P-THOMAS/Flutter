@@ -44,6 +44,7 @@ class _SettingsPageState extends State<SettingsPage> {
   bool allowZeroSelection = true;
 
   late SharedPreferences prefs;
+  late String? selectedAssembly;
 
   @override
   void initState() {
@@ -52,11 +53,11 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   _loadSavedAssembly() async {
-    prefs = await SharedPreferences.getInstance();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
     String? savedAssembly = prefs.getString('selectedAssembly');
     if (savedAssembly != null) {
       setState(() {
-        selectedValues = [savedAssembly];
+        selectedAssembly = savedAssembly; // Update selectedAssembly
       });
     }
   }
@@ -284,8 +285,8 @@ class _DropdownButtonWidgetState extends State<DropdownButtonWidget> {
   late String? selectedAssembly;
 
   @override
-  void didUpdateWidget(covariant DropdownButtonWidget oldWidget) {
-    super.didUpdateWidget(oldWidget);
+  void initState() {
+    super.initState();
     _loadSavedAssembly();
   }
 
@@ -294,13 +295,8 @@ class _DropdownButtonWidgetState extends State<DropdownButtonWidget> {
     String? savedAssembly = prefs.getString('selectedAssembly');
     if (savedAssembly != null) {
       setState(() {
-        selectedAssembly = savedAssembly;
-      });
-    }
-
-    if (selectedAssembly != null) {
-      setState(() {
-        selectedValues = [selectedAssembly!];
+        selectedValues = [savedAssembly];
+        selectedAssembly = savedAssembly; // Update selectedAssembly
       });
     }
   }
@@ -319,14 +315,15 @@ class _DropdownButtonWidgetState extends State<DropdownButtonWidget> {
             ),
             padding: const EdgeInsets.symmetric(horizontal: 10),
             child: DropdownButtonFormField<String>(
-              value: selectedValues.isNotEmpty ? selectedValues.first : null,
+              value: selectedAssembly,
               onChanged: allowZeroSelection
                   ? (String? value) {
                       setState(() {
+                        selectedAssembly = value;
                         if (selectedValues.contains(value)) {
                           selectedValues.remove(value);
                         } else {
-                          selectedValues.add(value!);
+                          selectedValues = [value!];
                         }
                       });
                     }
@@ -392,7 +389,8 @@ class _DropdownButtonWidgetState extends State<DropdownButtonWidget> {
 
   _saveSelectedAssembly() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String savedAssembly = selectedAssembly ?? '';
+    String savedAssembly =
+        selectedValues.isNotEmpty ? selectedValues.first : '';
 
     prefs.setString('selectedAssembly', savedAssembly);
 
