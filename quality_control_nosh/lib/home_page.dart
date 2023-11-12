@@ -8,6 +8,7 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
+  //app bar
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -15,19 +16,19 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.orange,
       ),
-      home: HomePage(),
+      home: SettingsPage(),
     );
   }
 }
 
-class HomePage extends StatefulWidget {
-  const HomePage({Key? key});
+class SettingsPage extends StatefulWidget {
+  const SettingsPage({Key? key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<SettingsPage> createState() => _SettingsPageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _SettingsPageState extends State<SettingsPage> {
   final user = FirebaseAuth.instance.currentUser!;
   List<String> selectedValues = [];
   List<String> options = [
@@ -145,7 +146,7 @@ class _HomePageState extends State<HomePage> {
               children: [
                 Container(
                   height: 400,
-                  child: HomePageContent(),
+                  child: SettingsPageContent(),
                 ),
               ],
             ),
@@ -171,7 +172,7 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class HomePageContent extends StatelessWidget {
+class SettingsPageContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
