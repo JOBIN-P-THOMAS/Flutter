@@ -1,11 +1,7 @@
-// ignore_for_file: use_key_in_widget_constructors, sort_child_properties_last, prefer_const_constructors, sized_box_for_whitespace, library_private_types_in_public_api
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-// import 'package:quality_control_nosh/inside_home.dart';
-// import 'asssembly_pusher.dart';
-// import 'package:quality_control_nosh/assembly_start.dart';
-import 'qr_code_scanner_screen.dart'; // Added import for QR code scanner screen
+import 'package:shared_preferences/shared_preferences.dart';
+import 'qr_code_scanner_screen.dart';
 
 void main() {
   runApp(MyApp());
@@ -43,6 +39,24 @@ class _HomePageState extends State<HomePage> {
     'SPICE'
   ];
   bool allowZeroSelection = true;
+
+  late SharedPreferences prefs;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedAssembly();
+  }
+
+  _loadSavedAssembly() async {
+    prefs = await SharedPreferences.getInstance();
+    String? savedAssembly = prefs.getString('selectedAssembly');
+    if (savedAssembly != null) {
+      setState(() {
+        selectedValues = [savedAssembly];
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -157,10 +171,6 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-/*
-  the contents inside the settings page saving the the person data to the excell etc are present here
-
-*/
 class HomePageContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -168,12 +178,10 @@ class HomePageContent extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          SizedBox(height: 20), // Adjusted SizedBox height
-
+          SizedBox(height: 20),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
             child: Container(
-              width: double.maxFinite,
               decoration: BoxDecoration(
                 color: Colors.grey[400],
                 borderRadius: BorderRadius.circular(15),
@@ -189,9 +197,7 @@ class HomePageContent extends StatelessWidget {
               ),
             ),
           ),
-
-          SizedBox(height: 10), // Added SizedBox for spacing
-
+          SizedBox(height: 10),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
             child: Container(
@@ -212,9 +218,7 @@ class HomePageContent extends StatelessWidget {
               ),
             ),
           ),
-
-          SizedBox(height: 10), // Added SizedBox for spacing
-
+          SizedBox(height: 10),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
             child: Container(
@@ -235,9 +239,7 @@ class HomePageContent extends StatelessWidget {
               ),
             ),
           ),
-
-          SizedBox(height: 10), // Added SizedBox for spacing
-
+          SizedBox(height: 10),
           DropdownButtonWidget(),
         ],
       ),
@@ -289,16 +291,14 @@ class _DropdownButtonWidgetState extends State<DropdownButtonWidget> {
                     }
                   : null,
               hint: Text("Select the assembly"),
-
               decoration: InputDecoration(
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.zero,
               ),
               dropdownColor: Colors.grey[300],
               borderRadius: BorderRadius.circular(20),
-
-              icon: Icon(Icons.arrow_drop_down), // Add an icon
-              style: TextStyle(fontSize: 16), // Increase font size
+              icon: Icon(Icons.arrow_drop_down),
+              style: TextStyle(fontSize: 16),
               items: options.map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
@@ -315,70 +315,13 @@ class _DropdownButtonWidgetState extends State<DropdownButtonWidget> {
             ),
           ),
         ),
-        // SizedBox(height: 10),
-        // Row(
-        //   children: [
-        //     Padding(
-        //       padding: const EdgeInsets.all(10),
-        //       child: Checkbox(
-        //         value: allowZeroSelection,
-        //         onChanged: (bool? value) {
-        //           setState(() {
-        //             allowZeroSelection = value!;
-        //             if (!allowZeroSelection && selectedValues.isEmpty) {
-        //               selectedValues.add(options.first);
-        //             }
-        //           });
-        //         },
-        //       ),
-        //     ),
-        //     Text('CONNECT USB '),
-        //   ],
-        // ),
-        // Padding(
-        // padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
-        // child: GestureDetector(
-        //   onTap: () {
-        //     if (selectedValues.isNotEmpty) {
-        //       String assemblyName = selectedValues.first;
-        //       if (assemblyName == 'STIRRER') {
-        //         Navigator.push(
-        //           context,
-        //           MaterialPageRoute(
-        //               builder: (context) =>
-        //                   AssemblyDetailPageStirrer(assemblyName)),
-        //         );
-        //       } else if (assemblyName == 'PUSHER') {
-        //         Navigator.push(
-        //           context,
-        //           MaterialPageRoute(
-        //               builder: (context) =>
-        //                   AssemblyDetailPagePusher(assemblyName)),
-        //         );
-        //       }
-        //       //  else (printf('hi');)// Add more conditions for other assemblies as needed
-        //     }
-        //   },
-        //     child: Container(
-        //       padding: EdgeInsets.all(14),
-        //       decoration: BoxDecoration(
-        //           color: Colors.orange,
-        //           borderRadius: BorderRadius.circular(10)),
-        //       child: Center(
-        //           child: Text(
-        //         "ENTER TESTING SETUP",
-        //         style: TextStyle(
-        //           color: Colors.black,
-        //         ),
-        //       )),
-        //     ),
-        //   ),
-        // ),
-        // SizedBox(height: 30),
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
           child: MaterialButton(
-            onPressed: () {},
+            onPressed: () {
+              _saveSelectedAssembly();
+              _showSnackbar();
+            },
             color: Colors.orange,
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -404,5 +347,31 @@ class _DropdownButtonWidgetState extends State<DropdownButtonWidget> {
         ),
       ],
     );
+  }
+
+  _saveSelectedAssembly() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('selectedAssembly',
+        selectedValues.isNotEmpty ? selectedValues.first : '');
+  }
+
+  _showSnackbar() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Assembly saved: ${selectedValues.first}',
+          style: TextStyle(color: Colors.white),
+        ),
+        duration: Duration(seconds: 2),
+        backgroundColor: Colors.green, // Customize the background color
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
+
+    // Close the dialog
+    Navigator.of(context).pop();
   }
 }
