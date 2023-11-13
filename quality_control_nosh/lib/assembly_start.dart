@@ -1,6 +1,7 @@
-// ignore_for_file: prefer_const_constructors, use_key_in_widget_constructors, library_private_types_in_public_api, prefer_const_constructors_in_immutables, prefer_interpolation_to_compose_strings
+// ignore_for_file: prefer_const_constructors, use_key_in_widget_constructors, library_private_types_in_public_api, prefer_const_constructors_in_immutables, prefer_interpolation_to_compose_strings, no_leading_underscores_for_local_identifiers, prefer_const_literals_to_create_immutables
 
 import 'package:flutter/material.dart';
+import 'package:quality_control_nosh/qr_code_scanner_screen.dart';
 import 'package:usb_serial/usb_serial.dart';
 import 'dart:typed_data';
 import 'dart:async';
@@ -21,6 +22,8 @@ class _AssemblyDetailPageStirrerState extends State<AssemblyDetailPageStirrer> {
   TextEditingController commandController = TextEditingController();
   int selectedBaudRate = 38400;
   bool isPortOpen = false;
+  String scannedQRCode = '';
+
   List<bool> checkStatus = List.filled(6, false); // Initialize with false
 
   Future<void> _initUsbCommunication() async {
@@ -92,6 +95,11 @@ class _AssemblyDetailPageStirrerState extends State<AssemblyDetailPageStirrer> {
       return;
     }
 
+    if (scannedQRCode.isEmpty) {
+      _showPopupMessage('Scan a QR code first.');
+      return;
+    }
+
     final commands = [
       {'command': 'CMD I 001', 'expectedResponse': '0'},
       {'command': 'CMD J 001', 'expectedResponse': '0'},
@@ -158,17 +166,64 @@ class _AssemblyDetailPageStirrerState extends State<AssemblyDetailPageStirrer> {
 
   @override
   Widget build(BuildContext context) {
+    void _scanQRCode() async {
+      // Open the QR code scanner screen
+      String result = await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => QRCodeScannerScreen()),
+      );
+
+      // Update the scanned QR code
+      if (result.isNotEmpty) {
+        setState(() {
+          scannedQRCode = result;
+        });
+      }
+    }
+
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
-        title: Text(widget.assemblyName),
-        backgroundColor: Colors.orange,
+        title: Text(
+          '${widget.assemblyName} - ${isPortOpen ? 'Connected' : 'Disconnected'}',
+          style: TextStyle(color: isPortOpen ? Colors.green : Colors.white),
+        ),
+        backgroundColor: Colors.orange[700],
       ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(10.0),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                child: GestureDetector(
+                  onTap: _scanQRCode,
+                  child: Container(
+                    padding: EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(15),
+                      color: Colors.orange[700],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Scan Stirrer QR to start',
+                          style: TextStyle(color: Colors.white, fontSize: 18.0),
+                        ),
+                        Icon(
+                          Icons.qr_code,
+                          color: Colors.white,
+                          size: 30,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: 10),
               _buildCheckContainer('Top Liiimit', checkStatus[0]),
               _buildCheckContainer('Bottom Limit', checkStatus[1]),
               _buildCheckContainer('Motor Encoder Check', checkStatus[2]),

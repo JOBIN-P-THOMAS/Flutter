@@ -2,8 +2,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:quality_control_nosh/assembly_start.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'qr_code_scanner_screen.dart';
+// import 'qr_code_scanner_screen.dart';
 
 void main() {
   runApp(MyApp());
@@ -91,43 +92,50 @@ class _SettingsPageState extends State<SettingsPage> {
       body: Column(
         children: [
           SizedBox(height: 20),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: GestureDetector(
-              onTap: _scanQRCode,
-              child: Container(
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(15),
-                  color: Colors.orange,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Tap to Scan Assembly QR',
-                      style: TextStyle(color: Colors.white, fontSize: 18.0),
-                    ),
-                    Icon(
-                      Icons.qr_code,
-                      color: Colors.white,
-                      size: 30,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
+          // Padding(
+          //   padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          //   child: GestureDetector(
+          //     onTap: _scanQRCode,
+          //     child: Container(
+          //       padding: EdgeInsets.all(16),
+          //       decoration: BoxDecoration(
+          //         borderRadius: BorderRadius.circular(15),
+          //         color: Colors.orange,
+          //       ),
+          //       child: Row(
+          //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //         children: [
+          //           Text(
+          //             'Tap to Scan Assembly QR',
+          //             style: TextStyle(color: Colors.white, fontSize: 18.0),
+          //           ),
+          //           Icon(
+          //             Icons.qr_code,
+          //             color: Colors.white,
+          //             size: 30,
+          //           ),
+          //         ],
+          //       ),
+          //     ),
+          //   ),
+          // ),
           Expanded(
             child: Center(
               child: Container(
-                width: 20,
+                padding: EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.black,
+                  gradient: LinearGradient(
+                    colors: [Colors.orange, Colors.red], // Choose your colors
+                  ),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  'dlmf c',
-                  style: TextStyle(color: Colors.white),
+                  'Enter Your Details and select an assembly to continue',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -175,12 +183,12 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  void _scanQRCode() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => QRCodeScannerScreen()),
-    );
-  }
+  // void _scanQRCode() {
+  //   Navigator.push(
+  //     context,
+  //     MaterialPageRoute(builder: (context) => QRCodeScannerScreen()),
+  //   );
+  // }
 }
 
 class SettingsPageContent extends StatelessWidget {
@@ -403,6 +411,22 @@ class _DropdownButtonWidgetState extends State<DropdownButtonWidget> {
     setState(() {
       selectedAssembly = savedAssembly;
     });
+
+    // Navigate to the corresponding page based on the selected assembly
+    switch (savedAssembly) {
+      case 'STIRRER':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AssemblyDetailPageStirrer(savedAssembly),
+          ),
+        );
+        break;
+      // Add cases for other assemblies if needed
+
+      default:
+      // Do nothing or handle the case where no specific page is needed
+    }
   }
 
   _showSnackbar() {
