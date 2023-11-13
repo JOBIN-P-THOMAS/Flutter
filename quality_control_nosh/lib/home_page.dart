@@ -44,23 +44,43 @@ class _SettingsPageState extends State<SettingsPage> {
   ];
   bool allowZeroSelection = true;
 
-  late SharedPreferences prefs;
+  // late SharedPreferences prefs;
   late String? selectedAssembly = 'Select an assembly';
+  late SharedPreferences prefs;
+  // late String? selectedAssembly;
+  late String? email;
+  late String? name;
+  late String? employeeId;
 
   @override
   void initState() {
     super.initState();
+    _loadSavedData();
     _loadSavedAssembly();
+  }
+
+  _loadSavedData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      email = prefs.getString('email');
+      name = prefs.getString('name');
+      employeeId = prefs.getString('employeeId');
+    });
   }
 
   _loadSavedAssembly() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? savedAssembly = prefs.getString('selectedAssembly');
-    if (savedAssembly != null) {
-      setState(() {
-        selectedAssembly = savedAssembly; // Update selectedAssembly
-      });
-    }
+
+    setState(() {
+      selectedValues = savedAssembly != null ? [savedAssembly] : [];
+      selectedAssembly =
+          selectedValues.isNotEmpty && options.contains(savedAssembly)
+              ? savedAssembly
+              : options.isNotEmpty
+                  ? options.first
+                  : null;
+    });
   }
 
   @override
@@ -76,7 +96,7 @@ class _SettingsPageState extends State<SettingsPage> {
             itemBuilder: (BuildContext context) {
               return [
                 PopupMenuItem(
-                  child: Text('Settings'),
+                  child: Text('User'),
                   value: 'Settings',
                 ),
               ];
@@ -176,7 +196,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'STIRRER',
+                            'PLATFORM',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 18,
@@ -498,11 +518,27 @@ class _SettingsPageState extends State<SettingsPage> {
 class SettingsPageContent extends StatelessWidget {
   final String? selectedAssembly;
   final Function(String?) onAssemblyChanged;
-  const SettingsPageContent({
+  final TextEditingController emailController;
+  final TextEditingController nameController;
+  final TextEditingController employeeIdController;
+
+  SettingsPageContent({
     Key? key,
     required this.selectedAssembly,
     required this.onAssemblyChanged,
-  }) : super(key: key);
+  })  : emailController = TextEditingController(),
+        nameController = TextEditingController(),
+        employeeIdController = TextEditingController(),
+        super(key: key) {
+    _loadSavedData();
+  }
+  _loadSavedData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    emailController.text = prefs.getString('email') ?? '';
+    nameController.text = prefs.getString('name') ?? '';
+    employeeIdController.text = prefs.getString('employeeId') ?? '';
+  }
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -520,6 +556,7 @@ class SettingsPageContent extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(14, 0, 0, 0),
                 child: TextField(
+                  controller: emailController,
                   decoration: InputDecoration(
                     border: InputBorder.none,
                     hintText: 'Email ID',
@@ -541,6 +578,7 @@ class SettingsPageContent extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(14, 0, 0, 0),
                 child: TextField(
+                  controller: nameController,
                   decoration: InputDecoration(
                     border: InputBorder.none,
                     hintText: 'Name',
@@ -562,6 +600,7 @@ class SettingsPageContent extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(14, 0, 0, 0),
                 child: TextField(
+                  controller: employeeIdController,
                   decoration: InputDecoration(
                     border: InputBorder.none,
                     hintText: 'Employee ID',
@@ -571,7 +610,11 @@ class SettingsPageContent extends StatelessWidget {
             ),
           ),
           SizedBox(height: 10),
-          DropdownButtonWidget(),
+          DropdownButtonWidget(
+            emailController: emailController,
+            nameController: nameController,
+            employeeIdController: employeeIdController,
+          ),
         ],
       ),
     );
@@ -579,6 +622,16 @@ class SettingsPageContent extends StatelessWidget {
 }
 
 class DropdownButtonWidget extends StatefulWidget {
+  final TextEditingController emailController;
+  final TextEditingController nameController;
+  final TextEditingController employeeIdController;
+
+  const DropdownButtonWidget({
+    required this.emailController,
+    required this.nameController,
+    required this.employeeIdController,
+  });
+
   @override
   _DropdownButtonWidgetState createState() => _DropdownButtonWidgetState();
 }
@@ -593,6 +646,9 @@ class _DropdownButtonWidgetState extends State<DropdownButtonWidget> {
     'OIL',
     'SPICE'
   ];
+  String? email = '';
+  String? name = '';
+  String? employeeId = '';
 
   bool allowZeroSelection = true;
   late String? selectedAssembly;
@@ -708,10 +764,11 @@ class _DropdownButtonWidgetState extends State<DropdownButtonWidget> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String savedAssembly =
         selectedValues.isNotEmpty ? selectedValues.first : '';
-
     prefs.setString('selectedAssembly', savedAssembly);
+    prefs.setString('email', widget.emailController.text);
+    prefs.setString('name', widget.nameController.text);
+    prefs.setString('employeeId', widget.employeeIdController.text);
 
-    // Update the selectedAssembly in the state
     setState(() {
       selectedAssembly = savedAssembly;
     });
