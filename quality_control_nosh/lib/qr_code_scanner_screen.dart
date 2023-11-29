@@ -15,18 +15,18 @@ class _QRCodeScannerScreenState extends State<QRCodeScannerScreen> {
     _scanQRCode(); // Trigger the QR code scan immediately
   }
 
-  Future<void> _scanQRCode() async {
+  void _scanQRCode() async {
     String barcodeScanResult = await FlutterBarcodeScanner.scanBarcode(
-      "#ff6666", // Color for the scan button
-      "Cancel", // Text for the cancel button
-      true, // Show flash icon (if available)
-      ScanMode.QR, // Specify the scan mode (QR, BARCODE, etc.)
+      "#ff6666",
+      "Cancel",
+      true,
+      ScanMode.QR,
     );
 
     if (barcodeScanResult != '-1') {
-      _showQRDataDialog(barcodeScanResult);
+      Navigator.pop(context, barcodeScanResult); // Return the scanned result
     } else {
-      Navigator.of(context).pop(); // Go back if user cancels scan
+      Navigator.pop(context, ''); // Return an empty string if user cancels scan
     }
   }
 

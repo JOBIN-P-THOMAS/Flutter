@@ -23,6 +23,9 @@ class _AssemblyDetailPageStirrerState extends State<AssemblyDetailPageStirrer> {
   int selectedBaudRate = 38400;
   bool isPortOpen = false;
   String scannedQRCode = '';
+  int currentCheckIndex = 0;
+
+  bool _stopButtonPressed = false;
 
   List<bool> checkStatus = List.filled(6, false); // Initialize with false
 
@@ -101,13 +104,25 @@ class _AssemblyDetailPageStirrerState extends State<AssemblyDetailPageStirrer> {
     }
 
     final commands = [
-      {'command': 'CMD I 001', 'expectedResponse': '0'},
       {'command': 'CMD J 001', 'expectedResponse': '0'},
+      {'command': 'CMD I 001', 'expectedResponse': '0'},
       {'command': 'CMD R 001', 'expectedResponse': '0'},
       {'command': 'CMD e 001', 'expectedResponse': '0'},
     ];
 
     for (var i = 0; i < commands.length; i++) {
+      if (_stopButtonPressed) {
+        // Stop button pressed, exit the loop
+        _stopButtonPressed = false; // Reset the flag
+        break;
+      }
+
+      if (!isPortOpen) {
+        // Check again if the port is still open before sending the command
+        _showPopupMessage('USB port is not open.');
+        break;
+      }
+
       final command = commands[i]['command'];
       final expectedResponse = commands[i]['expectedResponse'];
 
@@ -124,6 +139,14 @@ class _AssemblyDetailPageStirrerState extends State<AssemblyDetailPageStirrer> {
           break;
         } else {
           _updateCheckStatus(i, true);
+
+          // Show the next check container
+          setState(() {
+            currentCheckIndex = i + 1;
+          });
+
+          // Delay for better visualization (optional)
+          await Future.delayed(Duration(seconds: 1));
         }
       }
     }
@@ -161,7 +184,27 @@ class _AssemblyDetailPageStirrerState extends State<AssemblyDetailPageStirrer> {
   }
 
   void _stopButtonAction() {
+    setState(() {
+      _stopButtonPressed = true;
+    });
+    _showEmergencyStopPopup();
     // Add any necessary actions for the stop button here
+  }
+
+  void _restartButtonAction() {
+    // Reset the state and start the process again
+    setState(() {
+      currentCheckIndex = 0;
+      scannedQRCode = '';
+      checkStatus = List.filled(6, false);
+    });
+
+    // Optionally, you may want to close the USB port if it's open.
+    // Uncomment the next line if needed.
+    // if (isPortOpen) _togglePortConnection();
+
+    // Start the process again by calling the start button action.
+    _startButtonAction();
   }
 
   @override
@@ -223,12 +266,17 @@ class _AssemblyDetailPageStirrerState extends State<AssemblyDetailPageStirrer> {
                   ),
                 ),
               ),
-              SizedBox(height: 10),
-              _buildCheckContainer('Top Liiimit', checkStatus[0]),
-              _buildCheckContainer('Bottom Limit', checkStatus[1]),
-              _buildCheckContainer('Motor Encoder Check', checkStatus[2]),
-              _buildCheckContainer('BLDC + Limit Check', checkStatus[3]),
-              _buildCheckContainer('Assembly Smooth Check', checkStatus[4]),
+              currentCheckIndex == 0
+                  ? _buildStartCheckContainer()
+                  : _buildCheckContainer('Bottom Limit', checkStatus[0]),
+              if (currentCheckIndex >= 1)
+                _buildCheckContainer('Top Limit', checkStatus[1]),
+              if (currentCheckIndex >= 2)
+                _buildCheckContainer('Motor Encoder Check', checkStatus[2]),
+              if (currentCheckIndex >= 3)
+                _buildCheckContainer('BLDC + Limit Check', checkStatus[3]),
+              if (currentCheckIndex >= 4)
+                _buildCheckContainer('Assembly Smooth Check', checkStatus[4]),
               // _buildCheckContainer('BLDC Smooth Check', checkStatus[5]),
             ],
           ),
@@ -236,29 +284,73 @@ class _AssemblyDetailPageStirrerState extends State<AssemblyDetailPageStirrer> {
       ),
       floatingActionButton: Align(
         alignment: Alignment.bottomCenter,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            FloatingActionButton(
-              onPressed: _startButtonAction,
-              backgroundColor: Colors.green,
-              child: Icon(Icons.play_arrow),
-            ),
-            SizedBox(width: 16),
-            FloatingActionButton(
-              onPressed: _stopButtonAction,
-              backgroundColor: Colors.red,
-              child: Icon(Icons.stop),
-            ),
-            SizedBox(width: 16),
-            FloatingActionButton(
-              onPressed: _togglePortConnection,
-              backgroundColor: isPortOpen ? Colors.green : Colors.red,
-              child: Icon(isPortOpen ? Icons.usb : Icons.usb_off),
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              FloatingActionButton(
+                onPressed: _startButtonAction,
+                backgroundColor: Colors.green,
+                child: Icon(Icons.play_arrow),
+              ),
+              FloatingActionButton(
+                onPressed: _stopButtonAction,
+                backgroundColor: Colors.red,
+                child: Icon(Icons.stop),
+              ),
+              FloatingActionButton(
+                onPressed: _togglePortConnection,
+                backgroundColor: isPortOpen ? Colors.green : Colors.red,
+                child: Icon(isPortOpen ? Icons.usb : Icons.usb_off),
+              ),
+              FloatingActionButton(
+                onPressed: _restartButtonAction,
+                backgroundColor: Colors.green,
+                child: Icon(Icons.refresh),
+              ),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildStartCheckContainer() {
+    return Container(
+      height: 60,
+      width: double.maxFinite,
+      margin: EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(15),
+        // color: Colors.grey[400],
+      ),
+      child: Center(
+        child: Text(
+          'Press green play button to proceed',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+      ),
+    );
+  }
+
+  void _showEmergencyStopPopup() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Emergency Stop'),
+          content: Text('The process has been stopped.'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
     );
   }
 
