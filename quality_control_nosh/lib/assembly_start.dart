@@ -1,10 +1,9 @@
-// ignore_for_file: prefer_const_constructors, use_key_in_widget_constructors, library_private_types_in_public_api, prefer_const_constructors_in_immutables, prefer_interpolation_to_compose_strings, no_leading_underscores_for_local_identifiers, prefer_const_literals_to_create_immutables
-
 import 'package:flutter/material.dart';
 import 'package:quality_control_nosh/qr_code_scanner_screen.dart';
 import 'package:usb_serial/usb_serial.dart';
 import 'dart:typed_data';
 import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart'; // Add this import
 
 class AssemblyDetailPageStirrer extends StatefulWidget {
   final String assemblyName;
@@ -17,17 +16,36 @@ class AssemblyDetailPageStirrer extends StatefulWidget {
 }
 
 class _AssemblyDetailPageStirrerState extends State<AssemblyDetailPageStirrer> {
+  bool _showQRCodeMessage = false;
   UsbPort? port;
   String response = '';
   TextEditingController commandController = TextEditingController();
   int selectedBaudRate = 38400;
   bool isPortOpen = false;
-  String scannedQRCode = '';
+  String scannedQRCode = ''; // Scanned QR code data
   int currentCheckIndex = 0;
 
   bool _stopButtonPressed = false;
 
   List<bool> checkStatus = List.filled(6, false); // Initialize with false
+
+  Timer? _connectionTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _initUsbCommunication(); // Initiate USB connection during widget initialization
+
+    // Retrieve saved QR code data when the widget is initialized
+    _retrieveSavedQRData();
+  }
+
+  @override
+  void dispose() {
+    _connectionTimer?.cancel(); // Cancel the timer when the widget is disposed
+    port?.close(); // Close the USB port when the widget is disposed
+    super.dispose();
+  }
 
   Future<void> _initUsbCommunication() async {
     List<UsbDevice> devices = await UsbSerial.listDevices();
@@ -55,9 +73,18 @@ class _AssemblyDetailPageStirrerState extends State<AssemblyDetailPageStirrer> {
         isPortOpen = true;
       });
       _showPopupMessage('Connected');
-    } else {
-      _showPopupMessage('No connected devices found.');
+      _connectionTimer?.cancel(); // Stop the connection timer if connected
     }
+  }
+
+  void _startConnectionTimer() {
+    _connectionTimer = Timer.periodic(Duration(seconds: 2), (timer) {
+      if (!isPortOpen) {
+        _initUsbCommunication();
+      } else {
+        timer.cancel(); // Stop the timer once the connection is successful
+      }
+    });
   }
 
   void _togglePortConnection() {
@@ -68,7 +95,7 @@ class _AssemblyDetailPageStirrerState extends State<AssemblyDetailPageStirrer> {
       });
       _showPopupMessage('Disconnected');
     } else {
-      _initUsbCommunication();
+      _startConnectionTimer(); // Start the connection timer
     }
   }
 
@@ -220,6 +247,14 @@ class _AssemblyDetailPageStirrerState extends State<AssemblyDetailPageStirrer> {
       if (result.isNotEmpty) {
         setState(() {
           scannedQRCode = result;
+          _showQRCodeMessage =
+              true; // Set to true to display the QR code message
+          // Start a timer to hide the QR code message after 1 minute
+          Future.delayed(Duration(minutes: 1), () {
+            setState(() {
+              _showQRCodeMessage = false;
+            });
+          });
         });
       }
     }
@@ -253,7 +288,7 @@ class _AssemblyDetailPageStirrerState extends State<AssemblyDetailPageStirrer> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Scan Stirrer QR to start',
+                          'Scan QR to start',
                           style: TextStyle(color: Colors.white, fontSize: 18.0),
                         ),
                         Icon(
@@ -317,20 +352,35 @@ class _AssemblyDetailPageStirrerState extends State<AssemblyDetailPageStirrer> {
   }
 
   Widget _buildStartCheckContainer() {
-    return Container(
-      height: 60,
-      width: double.maxFinite,
-      margin: EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        // color: Colors.grey[400],
-      ),
-      child: Center(
-        child: Text(
-          'Press green play button to proceed',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+    return Column(
+      children: [
+        if (_showQRCodeMessage) // Only show if the QR code message is set to be displayed
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Text(
+              'Scanned QR Code: $scannedQRCode',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+          ),
+        Container(
+          height: 60,
+          width: double.maxFinite,
+          margin: EdgeInsets.only(bottom: 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(15),
+            // color: Colors.grey[400],
+          ),
+          child: Center(
+            child: Text(
+              'Press green play button to proceed',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 
@@ -388,5 +438,20 @@ class _AssemblyDetailPageStirrerState extends State<AssemblyDetailPageStirrer> {
         ],
       ),
     );
+  }
+
+  // Function to save scanned QR code data
+  Future<void> _saveQRData(String data) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('scannedQRData', data);
+  }
+
+  // Function to retrieve saved QR code data
+  Future<void> _retrieveSavedQRData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String savedQRData = prefs.getString('scannedQRData') ?? '';
+    setState(() {
+      scannedQRCode = savedQRData;
+    });
   }
 }

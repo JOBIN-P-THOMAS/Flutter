@@ -38,8 +38,8 @@ class _SettingsPageState extends State<SettingsPage> {
     'PLATFORM',
     'PUSHER',
     'STIRRER',
-    'WATER',
-    'OIL',
+    // 'WATER',
+    // 'OIL',
     'SPICE'
   ];
   bool allowZeroSelection = true;
@@ -315,104 +315,104 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 ),
 
-//water
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            AssemblyDetailPageStirrer('WATER'),
-                      ),
-                    );
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Container(
-                      height: double.maxFinite / 2,
-                      decoration: BoxDecoration(
-                        color: Colors.orange,
-                        borderRadius: BorderRadius.circular(15),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
-                            spreadRadius: 5,
-                            blurRadius: 7,
-                            offset: Offset(0, 3), // changes position of shadow
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'WATER',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(height: 10), // Adjust as needed
-                          Image.asset(
-                            'lib/assets/logo.png', // Replace with your image asset path
-                            height: 130, // Adjust as needed
-                            width: 130, // Adjust as needed
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-//OIL
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            AssemblyDetailPageStirrer('Your Assembly Name'),
-                      ),
-                    );
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Container(
-                      height: double.maxFinite / 2,
-                      decoration: BoxDecoration(
-                        color: Colors.orange,
-                        borderRadius: BorderRadius.circular(15),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
-                            spreadRadius: 5,
-                            blurRadius: 7,
-                            offset: Offset(0, 3), // changes position of shadow
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'OIL',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(height: 10), // Adjust as needed
-                          Image.asset(
-                            'lib/assets/logo.png', // Replace with your image asset path
-                            height: 130, // Adjust as needed
-                            width: 130, // Adjust as needed
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+// //water
+//                 GestureDetector(
+//                   onTap: () {
+//                     Navigator.push(
+//                       context,
+//                       MaterialPageRoute(
+//                         builder: (context) =>
+//                             AssemblyDetailPageStirrer('WATER'),
+//                       ),
+//                     );
+//                   },
+//                   child: Padding(
+//                     padding: const EdgeInsets.all(8.0),
+//                     child: Container(
+//                       height: double.maxFinite / 2,
+//                       decoration: BoxDecoration(
+//                         color: Colors.orange,
+//                         borderRadius: BorderRadius.circular(15),
+//                         boxShadow: [
+//                           BoxShadow(
+//                             color: Colors.grey.withOpacity(0.5),
+//                             spreadRadius: 5,
+//                             blurRadius: 7,
+//                             offset: Offset(0, 3), // changes position of shadow
+//                           ),
+//                         ],
+//                       ),
+//                       child: Column(
+//                         mainAxisAlignment: MainAxisAlignment.center,
+//                         children: [
+//                           Text(
+//                             'WATER',
+//                             style: TextStyle(
+//                               color: Colors.white,
+//                               fontSize: 18,
+//                               fontWeight: FontWeight.bold,
+//                             ),
+//                           ),
+//                           SizedBox(height: 10), // Adjust as needed
+//                           Image.asset(
+//                             'lib/assets/logo.png', // Replace with your image asset path
+//                             height: 130, // Adjust as needed
+//                             width: 130, // Adjust as needed
+//                           ),
+//                         ],
+//                       ),
+//                     ),
+//                   ),
+//                 ),
+// //OIL
+//                 GestureDetector(
+//                   onTap: () {
+//                     Navigator.push(
+//                       context,
+//                       MaterialPageRoute(
+//                         builder: (context) =>
+//                             AssemblyDetailPageStirrer('Your Assembly Name'),
+//                       ),
+//                     );
+//                   },
+//                   child: Padding(
+//                     padding: const EdgeInsets.all(8.0),
+//                     child: Container(
+//                       height: double.maxFinite / 2,
+//                       decoration: BoxDecoration(
+//                         color: Colors.orange,
+//                         borderRadius: BorderRadius.circular(15),
+//                         boxShadow: [
+//                           BoxShadow(
+//                             color: Colors.grey.withOpacity(0.5),
+//                             spreadRadius: 5,
+//                             blurRadius: 7,
+//                             offset: Offset(0, 3), // changes position of shadow
+//                           ),
+//                         ],
+//                       ),
+//                       child: Column(
+//                         mainAxisAlignment: MainAxisAlignment.center,
+//                         children: [
+//                           Text(
+//                             'OIL',
+//                             style: TextStyle(
+//                               color: Colors.white,
+//                               fontSize: 18,
+//                               fontWeight: FontWeight.bold,
+//                             ),
+//                           ),
+//                           SizedBox(height: 10), // Adjust as needed
+//                           Image.asset(
+//                             'lib/assets/logo.png', // Replace with your image asset path
+//                             height: 130, // Adjust as needed
+//                             width: 130, // Adjust as needed
+//                           ),
+//                         ],
+//                       ),
+//                     ),
+//                   ),
+//                 ),
                 //Spice
                 GestureDetector(
                   onTap: () {
@@ -642,8 +642,8 @@ class _DropdownButtonWidgetState extends State<DropdownButtonWidget> {
     'PLATFORM',
     'PUSHER',
     'STIRRER',
-    'WATER',
-    'OIL',
+    // 'WATER',
+    // 'OIL',
     'SPICE'
   ];
   String? email = '';
