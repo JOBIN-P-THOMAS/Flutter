@@ -24,6 +24,8 @@ class _AssemblyDetailPageStirrerState extends State<AssemblyDetailPageStirrer> {
   bool isPortOpen = false;
   String scannedQRCode = ''; // Scanned QR code data
   int currentCheckIndex = 0;
+  List<String> commandLogs = [];
+  final ScrollController _scrollController = ScrollController();
 
   bool _stopButtonPressed = false;
 
@@ -38,6 +40,15 @@ class _AssemblyDetailPageStirrerState extends State<AssemblyDetailPageStirrer> {
 
     // Retrieve saved QR code data when the widget is initialized
     _retrieveSavedQRData();
+  }
+
+  void addToCommandLogs(String log) {
+    setState(() {
+      commandLogs.add(log);
+    });
+
+    // Scroll to the bottom
+    _scrollToBottom();
   }
 
   @override
@@ -66,6 +77,7 @@ class _AssemblyDetailPageStirrerState extends State<AssemblyDetailPageStirrer> {
         for (String line in lines) {
           setState(() {
             response += line + '\n';
+            addToCommandLogs('Received: $line');
           });
         }
       });
@@ -131,49 +143,51 @@ class _AssemblyDetailPageStirrerState extends State<AssemblyDetailPageStirrer> {
     }
 
     final commands = [
-      {'command': 'CMD J 001', 'expectedResponse': '0'},
-      {'command': 'CMD I 001', 'expectedResponse': '0'},
-      {'command': 'CMD R 001', 'expectedResponse': '0'},
-      {'command': 'CMD e 001', 'expectedResponse': '0'},
+      {'command': 'CMD A', 'expectedResponse': '0'},
+      {'command': 'CMD B', 'expectedResponse': '0'},
+      {'command': 'CMD C', 'expectedResponse': '0'},
+      {'command': 'CMD D', 'expectedResponse': '0'},
     ];
 
-    for (var i = 0; i < commands.length; i++) {
-      if (_stopButtonPressed) {
-        // Stop button pressed, exit the loop
-        _stopButtonPressed = false; // Reset the flag
-        break;
-      }
-
-      if (!isPortOpen) {
-        // Check again if the port is still open before sending the command
-        _showPopupMessage('USB port is not open.');
-        break;
-      }
-
-      final command = commands[i]['command'];
-      final expectedResponse = commands[i]['expectedResponse'];
-
-      if (command != null) {
-        await port!.write(Uint8List.fromList(command.codeUnits));
-
-        final responseTimeout = Duration(seconds: 10);
-        final response =
-            await _waitForResponse(expectedResponse!, responseTimeout);
-
-        if (response != expectedResponse && response != '\$STATUS: 0') {
-          _updateCheckStatus(i, false);
-          _showPopupMessage('Assembly failed. Response: $response');
+    for (int j = 0; j < 2; j++) {
+      for (var i = 0; i < commands.length; i++) {
+        if (_stopButtonPressed) {
+          // Stop button pressed, exit the loop
+          _stopButtonPressed = false; // Reset the flag
           break;
-        } else {
-          _updateCheckStatus(i, true);
+        }
 
-          // Show the next check container
-          setState(() {
-            currentCheckIndex = i + 1;
-          });
+        if (!isPortOpen) {
+          // Check again if the port is still open before sending the command
+          _showPopupMessage('USB port is not open.');
+          break;
+        }
+        final command = commands[i]['command'];
+        final expectedResponse = commands[i]['expectedResponse'];
 
-          // Delay for better visualization (optional)
-          await Future.delayed(Duration(seconds: 1));
+        if (command != null) {
+          // Send the command
+          await _sendCommandTwice(command);
+
+          final responseTimeout = Duration(seconds: 3);
+          final response =
+              await _waitForResponse(expectedResponse!, responseTimeout);
+
+          if (response != expectedResponse && response != '\$STATUS: 0') {
+            _updateCheckStatus(i, false);
+            _showPopupMessage('Assembly failed. Response: $response');
+            return; // Stop further command execution if the response is not as expected
+          } else {
+            _updateCheckStatus(i, true);
+
+            // Show the next check container
+            setState(() {
+              currentCheckIndex = i + 1;
+            });
+
+            // Delay for better visualization (optional)
+            await Future.delayed(Duration(seconds: 1));
+          }
         }
       }
     }
@@ -181,6 +195,21 @@ class _AssemblyDetailPageStirrerState extends State<AssemblyDetailPageStirrer> {
     if (checkStatus.every((check) => check)) {
       _showPopupMessage('All checks completed.');
     }
+  }
+
+// Function to send a command twice with a 100ms delay
+  Future<void> _sendCommandTwice(String command) async {
+    await port!.write(Uint8List.fromList(command.codeUnits));
+    addToCommandLogs('Sent: $command');
+
+    // Wait for 100ms before sending the command again
+    // await Future.delayed(Duration(milliseconds: 100));
+
+    await port!.write(Uint8List.fromList(command.codeUnits));
+    addToCommandLogs('Sent: $command');
+
+    // Scroll to the bottom after sending the command twice
+    _scrollToBottom();
   }
 
   Future<String> _waitForResponse(
@@ -219,16 +248,13 @@ class _AssemblyDetailPageStirrerState extends State<AssemblyDetailPageStirrer> {
   }
 
   void _restartButtonAction() {
-    // Reset the state and start the process again
+    // Clear logs and reset state
+    _clearLogs();
     setState(() {
       currentCheckIndex = 0;
       scannedQRCode = '';
       checkStatus = List.filled(6, false);
     });
-
-    // Optionally, you may want to close the USB port if it's open.
-    // Uncomment the next line if needed.
-    // if (isPortOpen) _togglePortConnection();
 
     // Start the process again by calling the start button action.
     _startButtonAction();
@@ -269,118 +295,169 @@ class _AssemblyDetailPageStirrerState extends State<AssemblyDetailPageStirrer> {
         backgroundColor: Colors.orange[700],
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                child: GestureDetector(
-                  onTap: _scanQRCode,
-                  child: Container(
-                    padding: EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(15),
-                      color: Colors.orange[700],
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Scan QR to start',
-                          style: TextStyle(color: Colors.white, fontSize: 18.0),
-                        ),
-                        Icon(
-                          Icons.qr_code,
-                          color: Colors.white,
-                          size: 30,
-                        ),
-                      ],
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: GestureDetector(
+                    onTap: _scanQRCode,
+                    child: Container(
+                      padding: EdgeInsets.all(15),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(15),
+                        color: Colors.orange[700],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Scan QR to start',
+                            style:
+                                TextStyle(color: Colors.white, fontSize: 18.0),
+                          ),
+                          Icon(
+                            Icons.qr_code,
+                            color: Colors.white,
+                            size: 30,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
+                currentCheckIndex == 0
+                    ? _buildStartCheckContainer()
+                    : _buildCheckContainer('Safety Check', checkStatus[0]),
+                if (currentCheckIndex >= 1)
+                  _buildCheckContainer('Left Check', checkStatus[1]),
+                if (currentCheckIndex >= 2)
+                  _buildCheckContainer('Right Check', checkStatus[2]),
+                if (currentCheckIndex >= 3)
+                  _buildCheckContainer('Encoder Check', checkStatus[3]),
+                if (currentCheckIndex >= 4)
+                  _buildCheckContainer('Assembly Smooth Check', checkStatus[4]),
+                SizedBox(
+                    height:
+                        10), // Add some space between check containers and command logs
+              ],
+            ),
+            Positioned(
+              bottom: 100,
+              left: 0,
+              right: 0,
+              child: SingleChildScrollView(
+                // Wrap with SingleChildScrollView
+                child: Container(
+                  height: 100,
+                  padding: EdgeInsets.all(4),
+                  margin: EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(15),
+                    color: Colors.grey[300],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      Text(
+                        'Command Logs',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 5),
+                      Expanded(
+                        child: ListView.builder(
+                          // Removed SingleChildScrollView wrapping from here
+                          shrinkWrap: true,
+                          reverse: true,
+                          controller: _scrollController,
+                          itemCount: commandLogs.length,
+                          itemBuilder: (context, index) {
+                            return Text(
+                              commandLogs[index],
+                              style: TextStyle(fontSize: 12),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              currentCheckIndex == 0
-                  ? _buildStartCheckContainer()
-                  : _buildCheckContainer('Bottom Limit', checkStatus[0]),
-              if (currentCheckIndex >= 1)
-                _buildCheckContainer('Top Limit', checkStatus[1]),
-              if (currentCheckIndex >= 2)
-                _buildCheckContainer('Motor Encoder Check', checkStatus[2]),
-              if (currentCheckIndex >= 3)
-                _buildCheckContainer('BLDC + Limit Check', checkStatus[3]),
-              if (currentCheckIndex >= 4)
-                _buildCheckContainer('Assembly Smooth Check', checkStatus[4]),
-              // _buildCheckContainer('BLDC Smooth Check', checkStatus[5]),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
-      floatingActionButton: Align(
-        alignment: Alignment.bottomCenter,
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              FloatingActionButton(
-                onPressed: _startButtonAction,
-                backgroundColor: Colors.green,
-                child: Icon(Icons.play_arrow),
-              ),
-              FloatingActionButton(
-                onPressed: _stopButtonAction,
-                backgroundColor: Colors.red,
-                child: Icon(Icons.stop),
-              ),
-              FloatingActionButton(
-                onPressed: _togglePortConnection,
-                backgroundColor: isPortOpen ? Colors.green : Colors.red,
-                child: Icon(isPortOpen ? Icons.usb : Icons.usb_off),
-              ),
-              FloatingActionButton(
-                onPressed: _restartButtonAction,
-                backgroundColor: Colors.green,
-                child: Icon(Icons.refresh),
-              ),
-            ],
-          ),
+      floatingActionButton: Padding(
+        // Floating action buttons
+        padding: const EdgeInsets.only(bottom: 16.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            FloatingActionButton(
+              onPressed: _startButtonAction,
+              backgroundColor: Colors.green,
+              child: Icon(Icons.play_arrow),
+            ),
+            FloatingActionButton(
+              onPressed: _stopButtonAction,
+              backgroundColor: Colors.red,
+              child: Icon(Icons.stop),
+            ),
+            FloatingActionButton(
+              onPressed: _togglePortConnection,
+              backgroundColor: isPortOpen ? Colors.green : Colors.red,
+              child: Icon(isPortOpen ? Icons.usb : Icons.usb_off),
+            ),
+            FloatingActionButton(
+              onPressed: _restartButtonAction,
+              backgroundColor: Colors.green,
+              child: Icon(Icons.refresh),
+            ),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildStartCheckContainer() {
-    return Column(
-      children: [
-        if (_showQRCodeMessage) // Only show if the QR code message is set to be displayed
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Text(
-              'Scanned QR Code: $scannedQRCode',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          if (_showQRCodeMessage) // Only show if the QR code message is set to be displayed
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Text(
+                'Scanned QR Code: $scannedQRCode',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+            ),
+          Container(
+            height: 60,
+            width: double.maxFinite,
+            margin: EdgeInsets.only(bottom: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
+              // color: Colors.grey[400],
+            ),
+            child: Center(
+              child: Text(
+                'Press green play button to proceed',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
               ),
             ),
           ),
-        Container(
-          height: 60,
-          width: double.maxFinite,
-          margin: EdgeInsets.only(bottom: 10),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
-            // color: Colors.grey[400],
-          ),
-          child: Center(
-            child: Text(
-              'Press green play button to proceed',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-            ),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -438,6 +515,21 @@ class _AssemblyDetailPageStirrerState extends State<AssemblyDetailPageStirrer> {
         ],
       ),
     );
+  }
+
+  void _scrollToBottom() {
+    _scrollController.animateTo(
+      _scrollController.position.maxScrollExtent,
+      duration: Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
+  }
+
+  void _clearLogs() {
+    setState(() {
+      commandLogs.clear();
+    });
+    _scrollToBottom(); // Scroll to the bottom after clearing logs
   }
 
   // Function to save scanned QR code data
