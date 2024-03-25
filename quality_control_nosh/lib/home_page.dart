@@ -2,8 +2,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:quality_control_nosh/Pusher/ui.dart';
 import 'package:quality_control_nosh/assembly_start.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:quality_control_nosh/Platform/ui.dart';
+
 // import 'qr_code_scanner_screen.dart';
 
 void main() {
@@ -171,8 +174,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            AssemblyDetailPageStirrer('PLATFORM'),
+                        builder: (context) => MyPlatform(),
                       ),
                     );
                   },
@@ -221,8 +223,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            AssemblyDetailPageStirrer('PUSHER'),
+                        builder: (context) => MyPusher(),
                       ),
                     );
                   },
@@ -783,6 +784,23 @@ class _DropdownButtonWidgetState extends State<DropdownButtonWidget> {
           ),
         );
         break;
+      case 'PUSHER':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MyPusher(),
+          ),
+        );
+        break;
+      case 'PLATFORM':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MyPlatform(),
+          ),
+        );
+        break;
+
       // Add cases for other assemblies if needed
 
       default:
