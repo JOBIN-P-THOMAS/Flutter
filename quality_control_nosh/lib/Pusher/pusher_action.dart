@@ -1,10 +1,10 @@
-// ignore_for_file: library_private_types_in_public_api, prefer_final_fields, avoid_print, prefer_const_constructors, unused_element, sort_child_properties_last
+// ignore_for_file: library_private_types_in_public_api, prefer_final_fields, avoid_print, prefer_const_constructors, unused_element, sort_child_properties_last, prefer_const_declarations
 
 import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:usb_serial/usb_serial.dart';
-import 'package:quality_control_nosh/Pusher/ui.dart';
+// import 'package:quality_control_nosh/Pusher/ui.dart';
 
 class PusherAction extends StatefulWidget {
   final String qrData;
@@ -75,12 +75,14 @@ class _PusherActionState extends State<PusherAction> {
         _port!.inputStream!.listen((Uint8List data) {
           if (data.isNotEmpty) {
             final command = String.fromCharCodes(data);
-            print('Received command: $command'); // Print received command
+            // print('Received command: $command'); // Print received command
             setState(() {
               _receivedCommands.add(command);
             });
             _scrollToBottom(); // Scroll to the bottom when new data is added
           }
+        }, onError: (error) {
+          print('Error receiving data: $error');
         });
 
         setState(() {
@@ -136,85 +138,146 @@ class _PusherActionState extends State<PusherAction> {
     );
   }
 
-  void _sendCommand(String command) async {
-    if (_port != null) {
-      print('Sending command: $command'); // Print the command being sent
-      await _port!.write(Uint8List.fromList(command.codeUnits));
+  _startPlaying() {
+    if (_usbConnected && _port != null) {
+      final command = 'CMD A 001\r\n';
+      _port!.write(Uint8List.fromList(command.codeUnits));
       setState(() {
         _sentCommands.add(command);
       });
-      _scrollToBottom(); // Scroll to the bottom when new data is added
+      _scrollToBottom();
+      _waitForResponse();
     }
   }
 
-  _startPlaying() {
-    if (_usbConnected) {
-      _sendCommandMultipleTimes(
-          context, "CMD A", 3, Duration(milliseconds: 500));
-    }
-  }
+  void _waitForResponse() {
+    // Set a flag to indicate waiting for response
+    bool waitingForResponse = true;
 
-  void _sendCommandMultipleTimes(BuildContext pusherContext, String command,
-      int times, Duration interval) {
-    int sentCount = 0;
-    Timer.periodic(interval, (timer) {
-      if (sentCount >= times) {
-        timer.cancel(); // Stop sending commands if already sent required times
-        return;
-      }
-      if (!_receivedCommands.contains("0")) {
-        if (!_receivedCommands.contains("ACMD")) {
-          _sendCommand(command);
-        } else {
-          Timer(Duration(seconds: 2), () {
-            if (!_receivedCommands.contains("0")) {
-              // "0" not received within 1 second after "ACMD", navigate back to MyPusher
-              if (pusherContext != null && Navigator.canPop(pusherContext)) {
-                Navigator.pop(pusherContext);
-                if (pusherContext != null && Navigator.canPop(pusherContext)) {
-                  Navigator.pop(pusherContext);
-                  // Show red snackbar indicating to scan QR again
-                  ScaffoldMessenger.of(pusherContext).showSnackBar(
-                    SnackBar(
-                      content: Text('Please scan the QR again'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              }
-            }
+    // Start a timer to stop waiting after 6 seconds
+    Timer(Duration(seconds: 6), () {
+      // Stop waiting after 6 seconds
+      waitingForResponse = false;
+    });
+
+    _port!.inputStream!.listen((Uint8List data) async {
+      if (!waitingForResponse) return; // Ignore responses after 6 seconds
+
+      if (data.isNotEmpty) {
+        final response = String.fromCharCodes(data);
+        print('Received response: $response');
+
+        if (response.trim() == '0') {
+          // Received expected response, stop waiting
+          waitingForResponse = false;
+
+          // Process the response or perform any necessary actions
+          print('Received expected response: $response');
+
+          // _showCheckContainer(); // Display the "Check 1" container
+
+          final command = 'CMD A 002\r\n';
+          _port!.write(Uint8List.fromList(command.codeUnits));
+          setState(() {
+            _sentCommands.add(command);
           });
+          _scrollToBottom();
+          _waitForResponseAfterCmdA002();
         }
-        sentCount++;
       }
     });
   }
 
-  void _showAssemblySuccessPopup() {
+  void _waitForResponseAfterCmdA002() {
+    // Set a flag to indicate waiting for response
+    bool waitingForResponse = true;
+
+    // Start a timer to stop waiting after 6 seconds
+    Timer(Duration(seconds: 6), () {
+      // Stop waiting after 6 seconds
+      waitingForResponse = false;
+    });
+
+    _port!.inputStream!.listen((Uint8List data) async {
+      if (!waitingForResponse) return; // Ignore responses after 6 seconds
+
+      if (data.isNotEmpty) {
+        final response = String.fromCharCodes(data);
+        print('Received response: $response');
+
+        if (response.trim() == '0') {
+          // Received expected response, stop waiting
+          waitingForResponse = false;
+
+          // Process the response or perform any necessary actions
+          print('Received expected response: $response');
+
+          // _showCheckContainer(); // Display the "Check 1" container
+
+          final command = 'CMD A 003\r\n';
+          _port!.write(Uint8List.fromList(command.codeUnits));
+          setState(() {
+            _sentCommands.add(command);
+          });
+          _scrollToBottom();
+          _waitForResponseAfterCmdA003();
+        }
+      }
+    });
+  }
+
+  void _waitForResponseAfterCmdA003() {
+// Set a flag to indicate waiting for response
+    bool waitingForResponse = true;
+
+    // Start a timer to stop waiting after 6 seconds
+    Timer(Duration(seconds: 6), () {
+      // Stop waiting after 6 seconds
+      waitingForResponse = false;
+    });
+
+    _port!.inputStream!.listen((Uint8List data) async {
+      if (!waitingForResponse) return; // Ignore responses after 6 seconds
+
+      if (data.isNotEmpty) {
+        final response = String.fromCharCodes(data);
+        print('Received response: $response');
+
+        if (response.trim() == '0') {
+          // Received expected response, stop waiting
+          waitingForResponse = false;
+
+          // Process the response or perform any necessary actions
+          print('Received expected response: $response');
+
+          // _showCheckContainer(); // Display the "Check 1" container
+
+          // final command = 'CMD A 003\r\n';
+          // _port!.write(Uint8List.fromList(command.codeUnits));
+          // setState(() {
+          //   _sentCommands.add(command);
+          // });
+          // _scrollToBottom();
+          // _waitForResponseAfterCmdA003();
+        }
+      }
+    });
+  }
+
+  void _showCheckContainer() {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Assembly Success"),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text(
-                    "All commands sent successfully and assembly is completed."),
-                // You can add more information here if needed
-              ],
-            ),
+      builder: (context) => AlertDialog(
+        title: Text('Check 1'),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Close the dialog
+            },
+            child: Text('Close'),
           ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text("OK"),
-            ),
-          ],
-        );
-      },
+        ],
+      ),
     );
   }
 
