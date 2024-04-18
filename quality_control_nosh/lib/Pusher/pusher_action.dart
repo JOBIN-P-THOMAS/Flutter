@@ -74,18 +74,24 @@ class _PusherActionState extends State<PusherAction> {
           UsbPort.PARITY_EVEN,
         );
 
-        _port!.inputStream!.listen((Uint8List data) {
-          if (data.isNotEmpty) {
-            final command = String.fromCharCodes(data);
-            // print('Received command: $command'); // Print received command
-            setState(() {
-              _receivedCommands.add(command);
-            });
-            _scrollToBottom(); // Scroll to the bottom when new data is added
-          }
-        }, onError: (error) {
-          print('Error receiving data: $error');
-        });
+        _port!.inputStream!.listen(
+          (Uint8List data) {
+            if (data.isNotEmpty) {
+              final command = String.fromCharCodes(data).trim();
+              print('Received command: $command');
+
+              setState(() {
+                _receivedCommands.add(command);
+              });
+
+              // Scroll to the bottom when new data is added
+              _scrollToBottom();
+            }
+          },
+          onError: (error) {
+            print('Error receiving data: $error');
+          },
+        );
 
         setState(() {
           _usbConnected = true;
@@ -132,23 +138,45 @@ class _PusherActionState extends State<PusherAction> {
   }
 
   void _scrollToBottom() {
-    // Scroll to the bottom always
     _scrollController.animateTo(
       _scrollController.position.maxScrollExtent,
-      duration: Duration(milliseconds: 300),
+      duration: Duration(milliseconds: 10),
       curve: Curves.easeOut,
     );
   }
 
   _startPlaying() {
     if (_usbConnected && _port != null) {
+      setState(() {
+        _isPlaying = true; // Set playing state to true
+      });
+
+      // Show a loading indicator while waiting for response
+      showDialog(
+        context: context,
+        barrierDismissible: false, // Prevent dismissing dialog with outside tap
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Testing Assembly'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('please wait.....'),
+              ],
+            ),
+          );
+        },
+      );
+
       final command = 'CMD A 001\r\n';
       _port!.write(Uint8List.fromList(command.codeUnits));
       setState(() {
         _sentCommands.add(command);
       });
-      _scrollToBottom();
-      _waitForResponse();
+
+      _waitForResponse(); // Start waiting for response
     }
   }
 
@@ -166,7 +194,7 @@ class _PusherActionState extends State<PusherAction> {
       if (!waitingForResponse) return; // Ignore responses after 6 seconds
 
       if (data.isNotEmpty) {
-        final response = String.fromCharCodes(data);
+        final response = String.fromCharCodes(data).trim();
         print('Received response: $response');
 
         if (response.trim() == '0') {
@@ -177,7 +205,7 @@ class _PusherActionState extends State<PusherAction> {
           print('Received expected response: $response');
 
           // _showCheckContainer(); // Display the "Check 1" container
-
+          await Future.delayed(Duration(seconds: 1));
           final command = 'CMD A 002\r\n';
           _port!.write(Uint8List.fromList(command.codeUnits));
           setState(() {
@@ -206,7 +234,7 @@ class _PusherActionState extends State<PusherAction> {
       if (!waitingForResponse) return; // Ignore responses after 6 seconds
 
       if (data.isNotEmpty) {
-        final response = String.fromCharCodes(data);
+        final response = String.fromCharCodes(data).trim();
         print('Received response: $response');
 
         if (response.trim() == '0') {
@@ -217,7 +245,7 @@ class _PusherActionState extends State<PusherAction> {
           print('Received expected response: $response');
 
           // _showCheckContainer(); // Display the "Check 1" container
-
+          await Future.delayed(Duration(seconds: 1));
           final command = 'CMD A 003\r\n';
           _port!.write(Uint8List.fromList(command.codeUnits));
           setState(() {
@@ -246,7 +274,7 @@ class _PusherActionState extends State<PusherAction> {
       if (!waitingForResponse) return; // Ignore responses after 6 seconds
 
       if (data.isNotEmpty) {
-        final response = String.fromCharCodes(data);
+        final response = String.fromCharCodes(data).trim();
         print('Received response: $response');
 
         if (response.trim() == '0') {
@@ -257,7 +285,7 @@ class _PusherActionState extends State<PusherAction> {
           print('Received expected response: $response');
 
           // _showCheckContainer(); // Display the "Check 1" container
-
+          await Future.delayed(Duration(seconds: 1));
           final command = 'CMD A 004\r\n';
           _port!.write(Uint8List.fromList(command.codeUnits));
           setState(() {
@@ -286,8 +314,9 @@ class _PusherActionState extends State<PusherAction> {
       if (!waitingForResponse) return; // Ignore responses after 6 seconds
 
       if (data.isNotEmpty) {
-        final response = String.fromCharCodes(data);
+        final response = String.fromCharCodes(data).trim();
         print('Received response: $response');
+        await Future.delayed(Duration(seconds: 1));
 
         if (response.trim() == '0') {
           // Received expected response, stop waiting
@@ -314,78 +343,89 @@ class _PusherActionState extends State<PusherAction> {
   }
 
   void _stopPlaying() {
-    // Show a snackbar indicating assembly failure
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Assembly Failed',
-          style: TextStyle(color: Colors.white),
-        ),
-        backgroundColor: Colors.red,
-        duration: Duration(seconds: 3),
-      ),
-    );
-
-    // Show an alert dialog displaying sent and received commands
+    // Show a custom dialog indicating assembly failure
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            widget.qrData,
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          content: Container(
-            width: double.maxFinite,
-            height: 300,
-            child: ListView.builder(
-              itemCount: _sentCommands.length + _receivedCommands.length,
-              itemBuilder: (context, index) {
-                if (index % 2 == 0) {
-                  // Display sent command
-                  final sentIndex = index ~/ 2;
-                  if (sentIndex < _sentCommands.length) {
-                    final sentCommand = _sentCommands[sentIndex];
-                    if (sentCommand.isNotEmpty) {
+        return Dialog(
+          child: Container(
+            padding: EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.clear,
+                  size: 60,
+                  color: Colors.red,
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Assembly Failed',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red,
+                  ),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'QR Data: ${widget.qrData}',
+                  style: TextStyle(fontSize: 16),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Sent Commands:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 10),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: _sentCommands.length,
+                    itemBuilder: (context, index) {
+                      final sentCommand = _sentCommands[index];
                       return ListTile(
                         title: Text(
                           'Sent: $sentCommand',
                           style: TextStyle(color: Colors.blue),
                         ),
                       );
-                    }
-                  }
-                } else {
-                  // Display received response
-                  final receivedIndex = index ~/ 2;
-                  if (receivedIndex < _receivedCommands.length) {
-                    final receivedCommand = _receivedCommands[receivedIndex];
-                    if (receivedCommand.isNotEmpty) {
+                    },
+                  ),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Received Commands:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 10),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: _receivedCommands.length,
+                    itemBuilder: (context, index) {
+                      final receivedCommand = _receivedCommands[index];
                       return ListTile(
                         title: Text(
                           'Received: $receivedCommand',
                           style: TextStyle(color: Colors.green),
                         ),
                       );
-                    }
-                  }
-                }
-                return SizedBox.shrink();
-              },
+                    },
+                  ),
+                ),
+                SizedBox(height: 20),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close the dialog
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => MyPusher()),
+                    ); // Navigate to MyPusher page
+                  },
+                  child: Text('OK', style: TextStyle(color: Colors.red)),
+                ),
+              ],
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => MyPusher()),
-                ); // Navigate to MyPusher page
-              },
-              child: Text('OK', style: TextStyle(color: Colors.red)),
-            ),
-          ],
         );
       },
     );
@@ -418,25 +458,24 @@ class _PusherActionState extends State<PusherAction> {
                     final sentIndex = index ~/ 2;
                     if (sentIndex < _sentCommands.length) {
                       final sentCommand = _sentCommands[sentIndex];
-                      if (sentCommand.isNotEmpty) {
-                        return ListTile(
-                          title: Text('Sent: $sentCommand'),
-                        );
-                      }
+                      return ListTile(
+                        title: Text('Sent: $sentCommand'),
+                        // You can customize the ListTile appearance here
+                      );
                     }
                   } else {
-                    // Display received response
+                    // Display received command
                     final receivedIndex = index ~/ 2;
                     if (receivedIndex < _receivedCommands.length) {
                       final receivedCommand = _receivedCommands[receivedIndex];
-                      if (receivedCommand.isNotEmpty) {
-                        return ListTile(
-                          title: Text('Received: $receivedCommand'),
-                        );
-                      }
+                      return ListTile(
+                        title: Text('Received: $receivedCommand'),
+                        // You can customize the ListTile appearance here
+                      );
                     }
                   }
-                  return SizedBox.shrink();
+                  return SizedBox
+                      .shrink(); // If index is out of bounds, return empty SizedBox
                 },
               ),
             ),
