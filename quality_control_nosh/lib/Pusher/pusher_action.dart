@@ -5,8 +5,12 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:quality_control_nosh/Pusher/ui.dart';
 import 'package:usb_serial/usb_serial.dart';
+import 'dart:io';
+import 'package:flutter/services.dart'; // For accessing platform channel
+import 'package:path_provider/path_provider.dart';
 // import 'package:quality_control_nosh/Pusher/ui.dart';
 // import 'package:audioplayers/audioplayers.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class PusherAction extends StatefulWidget {
   final String qrData;
@@ -32,6 +36,7 @@ class _PusherActionState extends State<PusherAction> {
   @override
   void initState() {
     super.initState();
+    requestPermission();
     print('Initializing USB communication...');
     if (!_isInitialized) {
       _initUsbCommunication();
@@ -143,6 +148,17 @@ class _PusherActionState extends State<PusherAction> {
       duration: Duration(milliseconds: 10),
       curve: Curves.easeOut,
     );
+  }
+
+  Future<void> requestPermission() async {
+    var status = await Permission.storage.status;
+    if (!status.isGranted) {
+      status = await Permission.storage.request();
+      if (!status.isGranted) {
+        // Permission denied, handle it accordingly
+        print('Permission denied');
+      }
+    }
   }
 
   _startPlaying() {
@@ -342,7 +358,46 @@ class _PusherActionState extends State<PusherAction> {
     });
   }
 
-  void _stopPlaying() {
+  void _stopPlaying() async {
+    try {
+      final directory = Directory('/storage/emulated/0/Download');
+
+      // Check if the Download directory exists, create it if not
+      if (!await directory.exists()) {
+        await directory.create(recursive: true);
+      }
+
+      final qrCodeData = widget.qrData;
+      String fileName = '$qrCodeData.txt';
+      String filePath = '${directory.path}/$fileName';
+
+      // Check if the file already exists in the Download directory
+      int count = 1;
+      while (await File(filePath).exists()) {
+        // File already exists, generate a new file name with a count
+        fileName = '$qrCodeData-$count.txt';
+        filePath = '${directory.path}/$fileName';
+        count++;
+      }
+
+      final file = File(filePath);
+
+      String content = 'Sent Commands:\n';
+      for (final command in _sentCommands) {
+        content += '$command\n';
+      }
+      content += '\nReceived Commands:\n';
+      for (final command in _receivedCommands) {
+        content += '$command\n';
+      }
+
+      await file.writeAsString(content);
+
+      print('Commands saved to $filePath');
+    } catch (e) {
+      print('Error saving commands: $e');
+    }
+
     // Show a custom dialog indicating assembly failure
     showDialog(
       context: context,
@@ -416,10 +471,12 @@ class _PusherActionState extends State<PusherAction> {
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop(); // Close the dialog
-                    Navigator.push(
+                    Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(builder: (context) => MyPusher()),
-                    ); // Navigate to MyPusher page
+                      (route) => false, // Remove all routes until the new route
+                    );
+                    // Navigate to MyPusher page
                   },
                   child: Text('OK', style: TextStyle(color: Colors.red)),
                 ),
