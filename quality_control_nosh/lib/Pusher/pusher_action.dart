@@ -368,7 +368,12 @@ class _PusherActionState extends State<PusherAction> {
       }
 
       final qrCodeData = widget.qrData;
-      String fileName = '$qrCodeData.txt';
+      final now = DateTime.now();
+      final timestamp =
+          '${now.year}-${now.month}-${now.day}_${now.hour}-${now.minute}-${now.second}';
+      // final timestamp = DateTime.now().minute;
+      String fileName = '$qrCodeData-$timestamp.txt';
+      // String fileName = '$qrCodeData.txt';
       String filePath = '${directory.path}/$fileName';
 
       // Check if the file already exists in the Download directory
