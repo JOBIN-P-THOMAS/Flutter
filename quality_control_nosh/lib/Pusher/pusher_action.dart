@@ -11,6 +11,7 @@ import 'package:path_provider/path_provider.dart';
 // import 'package:quality_control_nosh/Pusher/ui.dart';
 // import 'package:audioplayers/audioplayers.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:http/http.dart' as http;
 
 class PusherAction extends StatefulWidget {
   final String qrData;
@@ -49,7 +50,7 @@ class _PusherActionState extends State<PusherAction> {
   @override
   void dispose() {
     _connectionTimer?.cancel(); // Stop the timer
-    _closeUsbConnection();
+    _port?.close(); // Close USB port if it's open
     _scrollController.dispose(); // Dispose the scroll controller
     super.dispose();
   }
@@ -207,7 +208,8 @@ class _PusherActionState extends State<PusherAction> {
     });
 
     _port!.inputStream!.listen((Uint8List data) async {
-      if (!waitingForResponse) return; // Ignore responses after 6 seconds
+      if (!waitingForResponse || !mounted)
+        return; // Check mounted before setState
 
       if (data.isNotEmpty) {
         final response = String.fromCharCodes(data).trim();
@@ -247,7 +249,8 @@ class _PusherActionState extends State<PusherAction> {
     });
 
     _port!.inputStream!.listen((Uint8List data) async {
-      if (!waitingForResponse) return; // Ignore responses after 6 seconds
+      if (!waitingForResponse || !mounted)
+        return; // Check mounted before setState
 
       if (data.isNotEmpty) {
         final response = String.fromCharCodes(data).trim();
@@ -287,7 +290,8 @@ class _PusherActionState extends State<PusherAction> {
     });
 
     _port!.inputStream!.listen((Uint8List data) async {
-      if (!waitingForResponse) return; // Ignore responses after 6 seconds
+      if (!waitingForResponse || !mounted)
+        return; // Check mounted before setState
 
       if (data.isNotEmpty) {
         final response = String.fromCharCodes(data).trim();
@@ -327,7 +331,8 @@ class _PusherActionState extends State<PusherAction> {
     });
 
     _port!.inputStream!.listen((Uint8List data) async {
-      if (!waitingForResponse) return; // Ignore responses after 6 seconds
+      if (!waitingForResponse || !mounted)
+        return; // Check mounted before setState
 
       if (data.isNotEmpty) {
         final response = String.fromCharCodes(data).trim();
@@ -373,6 +378,7 @@ class _PusherActionState extends State<PusherAction> {
           '${now.year}-${now.month}-${now.day}_${now.hour}-${now.minute}-${now.second}';
       // final timestamp = DateTime.now().minute;
       String fileName = '$qrCodeData-$timestamp.txt';
+      String fileNameAWS = '$qrCodeData-$timestamp';
       // String fileName = '$qrCodeData.txt';
       String filePath = '${directory.path}/$fileName';
 
@@ -399,8 +405,25 @@ class _PusherActionState extends State<PusherAction> {
       await file.writeAsString(content);
 
       print('Commands saved to $filePath');
+
+      final apiUrl =
+          'https://fls8oe8xp7.execute-api.ap-south-1.amazonaws.com/dev/nosh-test-S3?file_name=$fileNameAWS';
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        body: content,
+        headers: {
+          'Content-Type': 'text/plain'
+        }, // Specify content type as text/plain
+      );
+
+      if (response.statusCode == 200) {
+        print('Commands sent to S3 successfully');
+      } else {
+        print(
+            'Failed to send commands to S3. Status code: ${response.statusCode}');
+      }
     } catch (e) {
-      print('Error saving commands: $e');
+      print('Error saving and sending commands: $e');
     }
 
     // Show a custom dialog indicating assembly failure
