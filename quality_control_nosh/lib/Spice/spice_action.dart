@@ -3,7 +3,9 @@
 import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:quality_control_nosh/Pusher/ui.dart';
+import 'package:quality_control_nosh/Spice/spice_action.dart';
+import 'package:quality_control_nosh/Spice/ui_spice.dart';
+
 import 'package:usb_serial/usb_serial.dart';
 import 'dart:io';
 import 'package:flutter/services.dart'; // For accessing platform channel
@@ -13,16 +15,16 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:http/http.dart' as http;
 
-class PusherAction extends StatefulWidget {
+class SpiceAction extends StatefulWidget {
   final String qrData;
 
-  const PusherAction({Key? key, required this.qrData}) : super(key: key);
+  const SpiceAction({Key? key, required this.qrData}) : super(key: key);
 
   @override
-  _PusherActionState createState() => _PusherActionState();
+  _SpiceActionState createState() => _SpiceActionState();
 }
 
-class _PusherActionState extends State<PusherAction> {
+class _SpiceActionState extends State<SpiceAction> {
   bool _usbConnected = false;
   UsbPort? _port;
   Timer? _connectionTimer;
@@ -371,7 +373,7 @@ class _PusherActionState extends State<PusherAction> {
                     Navigator.of(context).pop(); // Close the dialog
                     Navigator.pushAndRemoveUntil(
                       context,
-                      MaterialPageRoute(builder: (context) => MyPusher()),
+                      MaterialPageRoute(builder: (context) => MySpice()),
                       (route) => false, // Remove all routes until the new route
                     );
                     // Navigate to MyPusher page
@@ -524,7 +526,7 @@ class _PusherActionState extends State<PusherAction> {
                     Navigator.of(context).pop(); // Close the dialog
                     Navigator.pushAndRemoveUntil(
                       context,
-                      MaterialPageRoute(builder: (context) => MyPusher()),
+                      MaterialPageRoute(builder: (context) => MySpice()),
                       (route) => false, // Remove all routes until the new route
                     );
                     // Navigate to MyPusher page

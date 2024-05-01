@@ -82,6 +82,13 @@ flutter:
     - lib/assets/ing.png
     - lib/assets/spice.png
     - lib/assets/beep.mp3
+    - lib/assets/Screenshot pusher.png
+    - lib/assets/platform.png
+    - lib/assets/PLATF.png
+    - lib/assets/PLAT.png
+    - lib/assets/SPICE_IMAGE.png
+    - lib/assets/Stirrer.png
+
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

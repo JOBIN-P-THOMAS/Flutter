@@ -1,11 +1,11 @@
-// ignore_for_file: prefer_const_constructors, use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously, prefer_const_constructors
 
 import 'package:flutter/material.dart';
 import 'package:quality_control_nosh/qr_code_scanner_screen.dart';
-import 'package:quality_control_nosh/Pusher/pusher_action.dart';
+import 'package:quality_control_nosh/Stirrer/stirrer_action.dart';
 
-class MyPusher extends StatelessWidget {
-  const MyPusher({Key? key}) : super(key: key);
+class MyStirrer extends StatelessWidget {
+  const MyStirrer({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +13,7 @@ class MyPusher extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.orange,
         elevation: 5,
-        title: const Text('PUSHER'),
+        title: const Text('STIRRER'),
         centerTitle: true,
       ),
       backgroundColor:
@@ -41,8 +41,8 @@ class MyPusher extends StatelessWidget {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(20),
                 child: Image.asset(
-                  'lib/assets/Screenshot pusher.png', // Image asset path
-                  height: 300,
+                  'lib/assets/Stirrer.png', // Image asset path
+                  height: 260,
                   fit: BoxFit.contain,
                 ),
               ),
@@ -62,7 +62,7 @@ class MyPusher extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => PusherAction(qrData: result),
+                      builder: (context) => StirrerAction(qrData: result),
                     ),
                   );
                 }
@@ -101,7 +101,7 @@ class MyPusher extends StatelessWidget {
             ),
             const SizedBox(height: 40),
             Text(
-              'Welcome to PUSHER testing!',
+              'Welcome to Stirrer Assembly testing',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -110,7 +110,7 @@ class MyPusher extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Text(
-              'Tap the button above to scan a QR code to testing!',
+              'Tap the button above to scan a QR code to start testing!',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,

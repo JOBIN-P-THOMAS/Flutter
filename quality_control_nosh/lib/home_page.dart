@@ -3,9 +3,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:quality_control_nosh/Pusher/ui.dart';
-import 'package:quality_control_nosh/assembly_start.dart';
+import 'package:quality_control_nosh/Spice/ui_spice.dart';
+// import 'package:quality_control_nosh/assembly_start.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:quality_control_nosh/Platform/ui.dart';
+import 'package:quality_control_nosh/Platform/ui_platform.dart';
+import 'package:quality_control_nosh/Stirrer/ui_stirrer.dart';
 
 // import 'qr_code_scanner_screen.dart';
 
@@ -272,8 +274,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            AssemblyDetailPageStirrer('STIRRER'),
+                        builder: (context) => MyStirrer(),
                       ),
                     );
                   },
@@ -420,8 +421,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            AssemblyDetailPageStirrer('Your Assembly Name'),
+                        builder: (context) => MySpice(),
                       ),
                     );
                   },
@@ -780,7 +780,8 @@ class _DropdownButtonWidgetState extends State<DropdownButtonWidget> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => AssemblyDetailPageStirrer(savedAssembly),
+            // builder: (context) => AssemblyDetailPageStirrer(savedAssembly),
+            builder: (context) => MyStirrer(),
           ),
         );
         break;
@@ -797,6 +798,14 @@ class _DropdownButtonWidgetState extends State<DropdownButtonWidget> {
           context,
           MaterialPageRoute(
             builder: (context) => MyPlatform(),
+          ),
+        );
+        break;
+      case 'SPICE':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MySpice(),
           ),
         );
         break;
