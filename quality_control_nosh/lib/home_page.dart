@@ -8,6 +8,7 @@ import 'package:quality_control_nosh/Spice/ui_spice.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:quality_control_nosh/Platform/ui_platform.dart';
 import 'package:quality_control_nosh/Stirrer/ui_stirrer.dart';
+import 'package:quality_control_nosh/PCB/ui_pcb.dart';
 
 // import 'qr_code_scanner_screen.dart';
 
@@ -45,7 +46,8 @@ class _SettingsPageState extends State<SettingsPage> {
     'STIRRER',
     // 'WATER',
     // 'OIL',
-    'SPICE'
+    'SPICE',
+    'PCB'
   ];
   bool allowZeroSelection = true;
 
@@ -463,6 +465,54 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                   ),
                 ),
+                //PCB
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MyPcb(),
+                      ),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Container(
+                      height: double.maxFinite / 2,
+                      decoration: BoxDecoration(
+                        color: Colors.orange,
+                        borderRadius: BorderRadius.circular(15),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.5),
+                            spreadRadius: 5,
+                            blurRadius: 7,
+                            offset: Offset(0, 3), // changes position of shadow
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'MAIN PCB',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 10), // Adjust as needed
+                          Image.asset(
+                            'lib/assets/logo.png', // Replace with your image asset path
+                            height: 130, // Adjust as needed
+                            width: 130, // Adjust as needed
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           )
@@ -645,7 +695,8 @@ class _DropdownButtonWidgetState extends State<DropdownButtonWidget> {
     'STIRRER',
     // 'WATER',
     // 'OIL',
-    'SPICE'
+    'SPICE',
+    'PCB'
   ];
   String? email = '';
   String? name = '';
@@ -802,6 +853,14 @@ class _DropdownButtonWidgetState extends State<DropdownButtonWidget> {
         );
         break;
       case 'SPICE':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MySpice(),
+          ),
+        );
+        break;
+      case 'PCB':
         Navigator.push(
           context,
           MaterialPageRoute(
