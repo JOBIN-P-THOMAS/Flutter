@@ -47,7 +47,8 @@ class _SettingsPageState extends State<SettingsPage> {
     // 'WATER',
     // 'OIL',
     'SPICE',
-    'PCB'
+    'PCB',
+    'GEAR PUMP'
   ];
   bool allowZeroSelection = true;
 
@@ -472,6 +473,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => MyPcb(),
+
                       ),
                     );
                   },
@@ -495,7 +497,55 @@ class _SettingsPageState extends State<SettingsPage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'MAIN PCB',
+                            'PCB',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 10), // Adjust as needed
+                          Image.asset(
+                            'lib/assets/logo.png', // Replace with your image asset path
+                            height: 130, // Adjust as needed
+                            width: 130, // Adjust as needed
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                //GEAR PUMP
+                GestureDetector(
+                  // onTap: () {
+                  //   Navigator.push(
+                  //     context,
+                  //     MaterialPageRoute(
+                  //       builder: (context) => MyPcb(),
+                  //     ),
+                  //   );
+                  // },
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Container(
+                      height: double.maxFinite / 2,
+                      decoration: BoxDecoration(
+                        color: Colors.orange,
+                        borderRadius: BorderRadius.circular(15),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.5),
+                            spreadRadius: 5,
+                            blurRadius: 7,
+                            offset: Offset(0, 3), // changes position of shadow
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'GEAR PUMP',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 18,
@@ -696,7 +746,8 @@ class _DropdownButtonWidgetState extends State<DropdownButtonWidget> {
     // 'WATER',
     // 'OIL',
     'SPICE',
-    'PCB'
+    'PCB',
+    'GEAR PUMP',
   ];
   String? email = '';
   String? name = '';
@@ -881,6 +932,26 @@ class _DropdownButtonWidgetState extends State<DropdownButtonWidget> {
       SnackBar(
         content: Text(
           'Assembly saved: ${selectedValues.first}',
+          style: TextStyle(color: Colors.white),
+        ),
+        duration: Duration(seconds: 2),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
+
+    // Close the dialog
+    Navigator.of(context).pop();
+  }
+
+  _showSnackbarProgress() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'IN PROGRESS ',
           style: TextStyle(color: Colors.white),
         ),
         duration: Duration(seconds: 2),

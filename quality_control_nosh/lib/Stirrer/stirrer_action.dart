@@ -189,7 +189,7 @@ class _StirrerActionState extends State<StirrerAction> {
         },
       );
 
-      final command = 'CMD A 001\r\n';
+      final command = 'CMD C 001\r\n';
       _port!.write(Uint8List.fromList(command.codeUnits));
       setState(() {
         _sentCommands.add(command);
@@ -403,7 +403,7 @@ class _StirrerActionState extends State<StirrerAction> {
           '${now.year}-${now.month}-${now.day}_${now.hour}-${now.minute}-${now.second}';
       // final timestamp = DateTime.now().minute;
       String fileName = '$qrCodeData-$timestamp.txt';
-      String fileNameAWS = '$qrCodeData-$timestamp';
+      String fileNameAWS = '$qrCodeData-$timestamp-success';
       // String fileName = '$qrCodeData.txt';
       String filePath = '${directory.path}/$fileName';
 

@@ -189,7 +189,7 @@ class _SpiceActionState extends State<SpiceAction> {
         },
       );
 
-      final command = 'CMD A 001\r\n';
+      final command = 'CMD D 001\r\n';
       _port!.write(Uint8List.fromList(command.codeUnits));
       setState(() {
         _sentCommands.add(command);
@@ -204,7 +204,7 @@ class _SpiceActionState extends State<SpiceAction> {
     bool waitingForResponse = true;
 
     // Start a timer to stop waiting after 26 seconds
-    Timer timeoutTimer = Timer(Duration(seconds: 26), () {
+    Timer timeoutTimer = Timer(Duration(seconds: 96), () {
       if (waitingForResponse && mounted) {
         // If no response has been received and the widget is still mounted
         print('Response timeout, stopping playback');
@@ -403,7 +403,7 @@ class _SpiceActionState extends State<SpiceAction> {
           '${now.year}-${now.month}-${now.day}_${now.hour}-${now.minute}-${now.second}';
       // final timestamp = DateTime.now().minute;
       String fileName = '$qrCodeData-$timestamp.txt';
-      String fileNameAWS = '$qrCodeData-$timestamp';
+      String fileNameAWS = '$qrCodeData-$timestamp-success';
       // String fileName = '$qrCodeData.txt';
       String filePath = '${directory.path}/$fileName';
 
