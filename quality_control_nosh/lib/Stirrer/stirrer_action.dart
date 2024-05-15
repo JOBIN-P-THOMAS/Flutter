@@ -250,7 +250,7 @@ class _StirrerActionState extends State<StirrerAction> {
           '${now.year}-${now.month}-${now.day}_${now.hour}-${now.minute}-${now.second}';
       // final timestamp = DateTime.now().minute;
       String fileName = '$qrCodeData-$timestamp.txt';
-      String fileNameAWS = '$qrCodeData-$timestamp';
+      String fileNameAWS = '$qrCodeData-$timestamp-Fail-Stirrer';
       // String fileName = '$qrCodeData.txt';
       String filePath = '${directory.path}/$fileName';
 
@@ -403,7 +403,7 @@ class _StirrerActionState extends State<StirrerAction> {
           '${now.year}-${now.month}-${now.day}_${now.hour}-${now.minute}-${now.second}';
       // final timestamp = DateTime.now().minute;
       String fileName = '$qrCodeData-$timestamp.txt';
-      String fileNameAWS = '$qrCodeData-$timestamp-success';
+      String fileNameAWS = '$qrCodeData-$timestamp-Success-Stirrer';
       // String fileName = '$qrCodeData.txt';
       String filePath = '${directory.path}/$fileName';
 
