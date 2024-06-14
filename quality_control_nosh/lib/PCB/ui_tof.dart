@@ -2,10 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:quality_control_nosh/qr_code_scanner_screen.dart';
-import 'package:quality_control_nosh/PCB/pcb_action.dart';
+import 'package:quality_control_nosh/PCB/tof_action.dart';
 
-class MyPcb extends StatelessWidget {
-  const MyPcb({Key? key}) : super(key: key);
+class MyTOF extends StatelessWidget {
+  const MyTOF({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +13,7 @@ class MyPcb extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.orange,
         elevation: 5,
-        title: const Text('PCB'),
+        title: const Text('TOF'),
         centerTitle: true,
       ),
       backgroundColor:
@@ -26,8 +26,8 @@ class MyPcb extends StatelessWidget {
             const SizedBox(height: 40),
             Container(
               decoration: BoxDecoration(
-                color:
-                    Colors.white, // Container background color (can be changed)
+                color: Color.fromARGB(255, 175, 163,
+                    163), // Container background color (can be changed)
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
@@ -41,13 +41,13 @@ class MyPcb extends StatelessWidget {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(20),
                 child: Image.asset(
-                  'lib/assets/logo.png', // Image asset path
+                  'lib/assets/TOF.png', // Image asset path
                   height: 250,
                   fit: BoxFit.contain,
                 ),
               ),
             ),
-            const SizedBox(height: 80),
+            const SizedBox(height: 100),
             GestureDetector(
               onTap: () async {
                 // Navigate to QR code scanner screen
@@ -62,7 +62,7 @@ class MyPcb extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => PcbAction(qrData: result),
+                      builder: (context) => TOFAction(qrData: result),
                     ),
                   );
                 }
@@ -101,7 +101,7 @@ class MyPcb extends StatelessWidget {
             ),
             const SizedBox(height: 40),
             Text(
-              'Welcome to PCB testing',
+              'Welcome to ToF testing',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,

@@ -4,8 +4,8 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
-import 'package:quality_control_nosh/PCB/Pcb_action.dart';
-import 'package:quality_control_nosh/PCB/ui_pcb.dart';
+import 'package:quality_control_nosh/PCB/tof_action.dart';
+import 'package:quality_control_nosh/PCB/ui_tof.dart';
 import 'package:usb_serial/usb_serial.dart';
 import 'dart:io';
 import 'package:flutter/services.dart'; // For accessing platform channel
@@ -15,16 +15,16 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:http/http.dart' as http;
 
-class PcbAction extends StatefulWidget {
+class TOFAction extends StatefulWidget {
   final String qrData;
 
-  const PcbAction({Key? key, required this.qrData}) : super(key: key);
+  const TOFAction({Key? key, required this.qrData}) : super(key: key);
 
   @override
-  _PcbActionState createState() => _PcbActionState();
+  _TOFActionState createState() => _TOFActionState();
 }
 
-class _PcbActionState extends State<PcbAction> {
+class _TOFActionState extends State<TOFAction> {
   bool _usbConnected = false;
   UsbPort? _port;
   Timer? _connectionTimer;
@@ -189,7 +189,8 @@ class _PcbActionState extends State<PcbAction> {
         },
       );
 
-      final command = 'CMD A 001\r\n';
+      final command = 'CMD';
+
       _port!.write(Uint8List.fromList(command.codeUnits));
       setState(() {
         _sentCommands.add(command);
@@ -250,7 +251,7 @@ class _PcbActionState extends State<PcbAction> {
           '${now.year}-${now.month}-${now.day}_${now.hour}-${now.minute}-${now.second}';
       // final timestamp = DateTime.now().minute;
       String fileName = '$qrCodeData-$timestamp.txt';
-      String fileNameAWS = '$qrCodeData-$timestamp-Fail-PCB';
+      String fileNameAWS = '$qrCodeData-$timestamp-Fail-TOF';
       // String fileName = '$qrCodeData.txt';
       String filePath = '${directory.path}/$fileName';
 
@@ -373,7 +374,7 @@ class _PcbActionState extends State<PcbAction> {
                     Navigator.of(context).pop(); // Close the dialog
                     Navigator.pushAndRemoveUntil(
                       context,
-                      MaterialPageRoute(builder: (context) => MyPcb()),
+                      MaterialPageRoute(builder: (context) => MyTOF()),
                       (route) => false, // Remove all routes until the new route
                     );
                     // Navigate to MyPusher page
@@ -403,7 +404,7 @@ class _PcbActionState extends State<PcbAction> {
           '${now.year}-${now.month}-${now.day}_${now.hour}-${now.minute}-${now.second}';
       // final timestamp = DateTime.now().minute;
       String fileName = '$qrCodeData-$timestamp.txt';
-      String fileNameAWS = '$qrCodeData-$timestamp-Success-PCB';
+      String fileNameAWS = '$qrCodeData-$timestamp-Success-TOF';
       // String fileName = '$qrCodeData.txt';
       String filePath = '${directory.path}/$fileName';
 
@@ -526,7 +527,7 @@ class _PcbActionState extends State<PcbAction> {
                     Navigator.of(context).pop(); // Close the dialog
                     Navigator.pushAndRemoveUntil(
                       context,
-                      MaterialPageRoute(builder: (context) => MyPcb()),
+                      MaterialPageRoute(builder: (context) => MyTOF()),
                       (route) => false, // Remove all routes until the new route
                     );
                     // Navigate to MyPusher page

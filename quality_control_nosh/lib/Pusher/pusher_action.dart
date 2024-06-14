@@ -202,7 +202,7 @@ class _PusherActionState extends State<PusherAction> {
     bool waitingForResponse = true;
 
     // Start a timer to stop waiting after 28 seconds
-    Timer timeoutTimer = Timer(Duration(seconds: 28), () {
+    Timer timeoutTimer = Timer(Duration(seconds: 56), () {
       if (waitingForResponse && mounted) {
         // If no response has been received and the widget is still mounted
         print('Response timeout, stopping playback');

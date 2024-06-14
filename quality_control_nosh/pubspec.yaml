@@ -90,6 +90,7 @@ flutter:
     - lib/assets/SPICE_IMAGE.png
     - lib/assets/Stirrer.png
     - lib/assets/NOSHLogo1.png
+    - lib/assets/TOF.png
 
   #   - images/a_dot_ham.jpeg
 flutter_icons:

@@ -8,7 +8,7 @@ import 'package:quality_control_nosh/Spice/ui_spice.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:quality_control_nosh/Platform/ui_platform.dart';
 import 'package:quality_control_nosh/Stirrer/ui_stirrer.dart';
-import 'package:quality_control_nosh/PCB/ui_pcb.dart';
+import 'package:quality_control_nosh/PCB/ui_tof.dart';
 
 // import 'qr_code_scanner_screen.dart';
 
@@ -472,8 +472,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => MyPcb(),
-
+                        builder: (context) => MyTOF(),
                       ),
                     );
                   },
@@ -497,7 +496,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'PCB',
+                            'TOF',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 18,
@@ -746,7 +745,7 @@ class _DropdownButtonWidgetState extends State<DropdownButtonWidget> {
     // 'WATER',
     // 'OIL',
     'SPICE',
-    'PCB',
+    'TOF',
     'GEAR PUMP',
   ];
   String? email = '';
@@ -911,7 +910,7 @@ class _DropdownButtonWidgetState extends State<DropdownButtonWidget> {
           ),
         );
         break;
-      case 'PCB':
+      case 'TOF':
         Navigator.push(
           context,
           MaterialPageRoute(
