@@ -2,10 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:quality_control_nosh/qr_code_scanner_screen.dart';
-import 'package:quality_control_nosh/PCB/tof_action.dart';
+import 'package:quality_control_nosh/Induction/induction_action.dart';
 
-class MyTOF extends StatelessWidget {
-  const MyTOF({Key? key}) : super(key: key);
+class MyInduction extends StatelessWidget {
+  const MyInduction({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +13,7 @@ class MyTOF extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.orange,
         elevation: 5,
-        title: const Text('TOF'),
+        title: const Text('INDUCTION'),
         centerTitle: true,
       ),
       backgroundColor:
@@ -26,8 +26,8 @@ class MyTOF extends StatelessWidget {
             const SizedBox(height: 40),
             Container(
               decoration: BoxDecoration(
-                color: Color.fromARGB(255, 175, 163,
-                    163), // Container background color (can be changed)
+                color:
+                    Colors.white, // Container background color (can be changed)
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
@@ -41,13 +41,14 @@ class MyTOF extends StatelessWidget {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(20),
                 child: Image.asset(
-                  'lib/assets/TOF.png', // Image asset path
-                  height: 250,
-                  fit: BoxFit.contain,
+                  'lib/assets/INDUCTION.png', // Image asset path
+                  height: 280,
+
+                  fit: BoxFit.fill,
                 ),
               ),
             ),
-            const SizedBox(height: 100),
+            const SizedBox(height: 50),
             GestureDetector(
               onTap: () async {
                 // Navigate to QR code scanner screen
@@ -62,7 +63,7 @@ class MyTOF extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => TOFAction(qrData: result),
+                      builder: (context) => InductionAction(qrData: result),
                     ),
                   );
                 }
@@ -101,7 +102,7 @@ class MyTOF extends StatelessWidget {
             ),
             const SizedBox(height: 40),
             Text(
-              'Welcome to ToF testing',
+              'Welcome to INDUCTION testing',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,

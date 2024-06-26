@@ -1,11 +1,12 @@
-// ignore_for_file: library_private_types_in_public_api, prefer_final_fields, avoid_print, prefer_const_constructors, unused_element, sort_child_properties_last, prefer_const_declarations, sized_box_for_whitespace, use_build_context_synchronously, prefer_const_literals_to_create_immutables, depend_on_referenced_packages, unnecessary_import, unused_import, curly_braces_in_flow_control_structures, use_super_parameters
+// ignore_for_file: library_private_types_in_public_api, prefer_final_fields, avoid_print, prefer_const_constructors, unused_element, sort_child_properties_last, prefer_const_declarations, sized_box_for_whitespace, use_build_context_synchronously, prefer_const_literals_to_create_immutables, depend_on_referenced_packages, unnecessary_import, unused_import, curly_braces_in_flow_control_structures
 
 import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:quality_control_nosh/Induction/ui_induction.dart';
 
-import 'package:quality_control_nosh/PCB/tof_action.dart';
-import 'package:quality_control_nosh/PCB/ui_tof.dart';
+import 'package:quality_control_nosh/Induction/induction_action.dart';
+// import 'package:quality_control_nosh/Induction/ui_induction.dart';
 import 'package:usb_serial/usb_serial.dart';
 import 'dart:io';
 import 'package:flutter/services.dart'; // For accessing platform channel
@@ -15,16 +16,16 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:http/http.dart' as http;
 
-class TOFAction extends StatefulWidget {
+class InductionAction extends StatefulWidget {
   final String qrData;
 
-  const TOFAction({Key? key, required this.qrData}) : super(key: key);
+  const InductionAction({super.key, required this.qrData});
 
   @override
-  _TOFActionState createState() => _TOFActionState();
+  _InductionActionState createState() => _InductionActionState();
 }
 
-class _TOFActionState extends State<TOFAction> {
+class _InductionActionState extends State<InductionAction> {
   bool _usbConnected = false;
   UsbPort? _port;
   Timer? _connectionTimer;
@@ -189,11 +190,18 @@ class _TOFActionState extends State<TOFAction> {
         },
       );
 
-      final command = 'CMD';
-
+      final command = 'CMD E 001\r\n';
       _port!.write(Uint8List.fromList(command.codeUnits));
       setState(() {
         _sentCommands.add(command);
+      });
+
+      // Send the command again after a 2-second delay
+      Future.delayed(Duration(seconds: 2), () {
+        _port!.write(Uint8List.fromList(command.codeUnits));
+        setState(() {
+          _sentCommands.add(command);
+        });
       });
 
       _waitForResponse(); // Start waiting for response
@@ -205,7 +213,7 @@ class _TOFActionState extends State<TOFAction> {
     bool waitingForResponse = true;
 
     // Start a timer to stop waiting after 26 seconds
-    Timer timeoutTimer = Timer(Duration(seconds: 30), () {
+    Timer timeoutTimer = Timer(Duration(seconds: 130), () {
       if (waitingForResponse && mounted) {
         // If no response has been received and the widget is still mounted
         print('Response timeout, stopping playback');
@@ -258,8 +266,8 @@ class _TOFActionState extends State<TOFAction> {
         final now = DateTime.now();
         final timestamp =
             '${now.year}-${now.month}-${now.day}_${now.hour}-${now.minute}-${now.second}';
-        String fileName = '$qrCodeData-$timestamp-Fail-TOF.txt';
-        String fileNameAWS = '$qrCodeData-$timestamp-Fail-TOF';
+        String fileName = '$qrCodeData-$timestamp-Fail-Induction.txt';
+        String fileNameAWS = '$qrCodeData-$timestamp-Fail-Induction';
         String filePath = '${downloadDir.path}/$fileName';
 
         // Check if the file already exists in the Download directory
@@ -382,7 +390,7 @@ class _TOFActionState extends State<TOFAction> {
                     Navigator.of(context).pop(); // Close the dialog
                     Navigator.pushAndRemoveUntil(
                       context,
-                      MaterialPageRoute(builder: (context) => MyTOF()),
+                      MaterialPageRoute(builder: (context) => MyInduction()),
                       (route) => false, // Remove all routes until the new route
                     );
                   },
@@ -418,8 +426,8 @@ class _TOFActionState extends State<TOFAction> {
         final now = DateTime.now();
         final timestamp =
             '${now.year}-${now.month}-${now.day}_${now.hour}-${now.minute}-${now.second}';
-        String fileName = '$qrCodeData-$timestamp-Success-TOF.txt';
-        String fileNameAWS = '$qrCodeData-$timestamp-Success-TOF';
+        String fileName = '$qrCodeData-$timestamp-Success-Induction.txt';
+        String fileNameAWS = '$qrCodeData-$timestamp-Success-Induction';
         String filePath = '${downloadDir.path}/$fileName';
 
         // Check if the file already exists in the Download directory
@@ -566,7 +574,7 @@ class _TOFActionState extends State<TOFAction> {
                     Navigator.of(context).pop(); // Close the dialog
                     Navigator.pushAndRemoveUntil(
                       context,
-                      MaterialPageRoute(builder: (context) => MyTOF()),
+                      MaterialPageRoute(builder: (context) => MyInduction()),
                       (route) => false,
                     );
                   },

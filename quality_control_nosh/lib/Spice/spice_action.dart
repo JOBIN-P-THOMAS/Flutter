@@ -237,62 +237,70 @@ class _SpiceActionState extends State<SpiceAction> {
 
   void _stopPlaying() async {
     try {
-      final directory = Directory('/storage/emulated/0/Download');
+      // Request storage permissions
+      if (await Permission.storage.request().isGranted) {
+        // Get the external storage directory
+        final directory = await getExternalStorageDirectory();
 
-      // Check if the Download directory exists, create it if not
-      if (!await directory.exists()) {
-        await directory.create(recursive: true);
-      }
+        if (directory == null) {
+          print('Could not get the external storage directory');
+          return;
+        }
 
-      final qrCodeData = widget.qrData;
-      final now = DateTime.now();
-      final timestamp =
-          '${now.year}-${now.month}-${now.day}_${now.hour}-${now.minute}-${now.second}';
-      // final timestamp = DateTime.now().minute;
-      String fileName = '$qrCodeData-$timestamp.txt';
-      String fileNameAWS = '$qrCodeData-$timestamp-Fail-Spice';
-      // String fileName = '$qrCodeData.txt';
-      String filePath = '${directory.path}/$fileName';
+        // Check if the Download directory exists, create it if not
+        final downloadDir = Directory('${directory.path}/Download');
+        if (!await downloadDir.exists()) {
+          await downloadDir.create(recursive: true);
+        }
 
-      // Check if the file already exists in the Download directory
-      int count = 1;
-      while (await File(filePath).exists()) {
-        // File already exists, generate a new file name with a count
-        fileName = '$qrCodeData-$count.txt';
-        filePath = '${directory.path}/$fileName';
-        count++;
-      }
+        final qrCodeData = widget.qrData;
+        final now = DateTime.now();
+        final timestamp =
+            '${now.year}-${now.month}-${now.day}_${now.hour}-${now.minute}-${now.second}';
+        String fileName = '$qrCodeData-$timestamp-Fail-Spice.txt';
+        String fileNameAWS = '$qrCodeData-$timestamp-Fail-Spice';
+        String filePath = '${downloadDir.path}/$fileName';
 
-      final file = File(filePath);
+        // Check if the file already exists in the Download directory
+        int count = 1;
+        while (await File(filePath).exists()) {
+          // File already exists, generate a new file name with a count
+          fileName = '$qrCodeData-$count.txt';
+          filePath = '${downloadDir.path}/$fileName';
+          count++;
+        }
 
-      String content = 'Sent Commands:\n';
-      for (final command in _sentCommands) {
-        content += '$command\n';
-      }
-      content += '\nReceived Commands:\n';
-      for (final command in _receivedCommands) {
-        content += '$command\n';
-      }
+        final file = File(filePath);
 
-      await file.writeAsString(content);
+        String content = 'Sent Commands:\n';
+        for (final command in _sentCommands) {
+          content += '$command\n';
+        }
+        content += '\nReceived Commands:\n';
+        for (final command in _receivedCommands) {
+          content += '$command\n';
+        }
 
-      print('Commands saved to $filePath');
+        await file.writeAsString(content);
 
-      final apiUrl =
-          'https://fls8oe8xp7.execute-api.ap-south-1.amazonaws.com/dev/nosh-test-S3?file_name=$fileNameAWS';
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        body: content,
-        headers: {
-          'Content-Type': 'text/plain'
-        }, // Specify content type as text/plain
-      );
+        print('Commands saved to $filePath');
 
-      if (response.statusCode == 200) {
-        print('Commands sent to S3 successfully');
+        final apiUrl =
+            'https://fls8oe8xp7.execute-api.ap-south-1.amazonaws.com/dev/nosh-test-S3?file_name=$fileNameAWS';
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          body: content,
+          headers: {'Content-Type': 'text/plain'},
+        );
+
+        if (response.statusCode == 200) {
+          print('Commands sent to S3 successfully');
+        } else {
+          print(
+              'Failed to send commands to S3. Status code: ${response.statusCode}');
+        }
       } else {
-        print(
-            'Failed to send commands to S3. Status code: ${response.statusCode}');
+        print('Storage permission denied');
       }
     } catch (e) {
       print('Error saving and sending commands: $e');
@@ -376,7 +384,6 @@ class _SpiceActionState extends State<SpiceAction> {
                       MaterialPageRoute(builder: (context) => MySpice()),
                       (route) => false, // Remove all routes until the new route
                     );
-                    // Navigate to MyPusher page
                   },
                   child: Text('OK', style: TextStyle(color: Colors.red)),
                 ),
@@ -390,68 +397,100 @@ class _SpiceActionState extends State<SpiceAction> {
 
   void _success() async {
     try {
-      final directory = Directory('/storage/emulated/0/Download');
+      // Request storage permissions
+      if (await Permission.storage.request().isGranted) {
+        // Get the external storage directory
+        final directory = await getExternalStorageDirectory();
 
-      // Check if the Download directory exists, create it if not
-      if (!await directory.exists()) {
-        await directory.create(recursive: true);
-      }
+        if (directory == null) {
+          print('Could not get the external storage directory');
+          return;
+        }
 
-      final qrCodeData = widget.qrData;
-      final now = DateTime.now();
-      final timestamp =
-          '${now.year}-${now.month}-${now.day}_${now.hour}-${now.minute}-${now.second}';
-      // final timestamp = DateTime.now().minute;
-      String fileName = '$qrCodeData-$timestamp.txt';
-      String fileNameAWS = '$qrCodeData-$timestamp-Success-Spice';
-      // String fileName = '$qrCodeData.txt';
-      String filePath = '${directory.path}/$fileName';
+        // Check if the Download directory exists, create it if not
+        final downloadDir = Directory('${directory.path}/Download');
+        if (!await downloadDir.exists()) {
+          await downloadDir.create(recursive: true);
+        }
 
-      // Check if the file already exists in the Download directory
-      int count = 1;
-      while (await File(filePath).exists()) {
-        // File already exists, generate a new file name with a count
-        fileName = '$qrCodeData-$count.txt';
-        filePath = '${directory.path}/$fileName';
-        count++;
-      }
+        final qrCodeData = widget.qrData;
+        final now = DateTime.now();
+        final timestamp =
+            '${now.year}-${now.month}-${now.day}_${now.hour}-${now.minute}-${now.second}';
+        String fileName = '$qrCodeData-$timestamp-Success-Spice.txt';
+        String fileNameAWS = '$qrCodeData-$timestamp-Success-Spice';
+        String filePath = '${downloadDir.path}/$fileName';
 
-      final file = File(filePath);
+        // Check if the file already exists in the Download directory
+        int count = 1;
+        while (await File(filePath).exists()) {
+          // File already exists, generate a new file name with a count
+          fileName = '$qrCodeData-$count.txt';
+          filePath = '${downloadDir.path}/$fileName';
+          count++;
+        }
 
-      String content = 'Sent Commands:\n';
-      for (final command in _sentCommands) {
-        content += '$command\n';
-      }
-      content += '\nReceived Commands:\n';
-      for (final command in _receivedCommands) {
-        content += '$command\n';
-      }
+        final file = File(filePath);
 
-      await file.writeAsString(content);
+        String content = 'Sent Commands:\n';
+        for (final command in _sentCommands) {
+          content += '$command\n';
+        }
+        content += '\nReceived Commands:\n';
+        for (final command in _receivedCommands) {
+          content += '$command\n';
+        }
 
-      print('Commands saved to $filePath');
+        await file.writeAsString(content);
 
-      final apiUrl =
-          'https://fls8oe8xp7.execute-api.ap-south-1.amazonaws.com/dev/nosh-test-S3?file_name=$fileNameAWS';
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        body: content,
-        headers: {
-          'Content-Type': 'text/plain'
-        }, // Specify content type as text/plain
-      );
+        print('Commands saved to $filePath');
 
-      if (response.statusCode == 200) {
-        print('Commands sent to S3 successfully');
+        final apiUrl =
+            'https://fls8oe8xp7.execute-api.ap-south-1.amazonaws.com/dev/nosh-test-S3?file_name=$fileNameAWS';
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          body: content,
+          headers: {'Content-Type': 'text/plain'},
+        );
+
+        if (response.statusCode == 200) {
+          print('Commands sent to S3 successfully');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Commands uploaded to S3 successfully'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          print(
+              'Failed to send commands to S3. Status code: ${response.statusCode}');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to upload commands to S3'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       } else {
-        print(
-            'Failed to send commands to S3. Status code: ${response.statusCode}');
+        print('Storage permission denied');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Storage permission denied'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } catch (e) {
       print('Error saving and sending commands: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error occurred: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
 
-    // Show a custom dialog indicating assembly failure
+    // Show a custom dialog indicating assembly success
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -527,9 +566,8 @@ class _SpiceActionState extends State<SpiceAction> {
                     Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(builder: (context) => MySpice()),
-                      (route) => false, // Remove all routes until the new route
+                      (route) => false,
                     );
-                    // Navigate to MyPusher page
                   },
                   child: Text('OK', style: TextStyle(color: Colors.red)),
                 ),

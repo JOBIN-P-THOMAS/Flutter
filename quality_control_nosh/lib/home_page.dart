@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:quality_control_nosh/Induction/ui_induction.dart';
 import 'package:quality_control_nosh/Pusher/ui.dart';
 import 'package:quality_control_nosh/Spice/ui_spice.dart';
 // import 'package:quality_control_nosh/assembly_start.dart';
@@ -9,6 +10,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:quality_control_nosh/Platform/ui_platform.dart';
 import 'package:quality_control_nosh/Stirrer/ui_stirrer.dart';
 import 'package:quality_control_nosh/PCB/ui_tof.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:http/http.dart' as http;
 
 // import 'qr_code_scanner_screen.dart';
 
@@ -48,7 +51,7 @@ class _SettingsPageState extends State<SettingsPage> {
     // 'OIL',
     'SPICE',
     'PCB',
-    'GEAR PUMP'
+    'INDUCTION'
   ];
   bool allowZeroSelection = true;
 
@@ -91,6 +94,53 @@ class _SettingsPageState extends State<SettingsPage> {
     });
   }
 
+  Future<void> _checkInternetAndNavigate(
+      BuildContext context, Widget page) async {
+    // print("Checking internet connection...");
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      // print("No internet connection.");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:
+              Text('No internet connection. Please connect to the internet.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } else {
+      try {
+        final result = await http.get(Uri.parse('https://www.google.com'));
+        if (result.statusCode == 200) {
+          // print("Internet connection available.");
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => page,
+            ),
+          );
+        } else {
+          // print("Internet connection issue. Status code: ${result.statusCode}");
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                  'Internet connection issue. Please check your connection.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } catch (e) {
+        // print("Error checking internet connection: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Internet connection issue. Please check your connection.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -120,55 +170,6 @@ class _SettingsPageState extends State<SettingsPage> {
       body: Column(
         children: [
           SizedBox(height: 20),
-          // Padding(
-          //   padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          //   child: GestureDetector(
-          //     onTap: _scanQRCode,
-          //     child: Container(
-          //       padding: EdgeInsets.all(16),
-          //       decoration: BoxDecoration(
-          //         borderRadius: BorderRadius.circular(15),
-          //         color: Colors.orange,
-          //       ),
-          //       child: Row(
-          //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          //         children: [
-          //           Text(
-          //             'Tap to Scan Assembly QR',
-          //             style: TextStyle(color: Colors.white, fontSize: 18.0),
-          //           ),
-          //           Icon(
-          //             Icons.qr_code,
-          //             color: Colors.white,
-          //             size: 30,
-          //           ),
-          //         ],
-          //       ),
-          //     ),
-          //   ),
-          // ),
-          // Expanded(
-          //   child: Center(
-          //     child: Container(
-          //       padding: EdgeInsets.all(20),
-          //       decoration: BoxDecoration(
-          //         gradient: LinearGradient(
-          //           colors: [Colors.orange, Colors.red], // Choose your colors
-          //         ),
-          //         borderRadius: BorderRadius.circular(10),
-          //       ),
-          //       child: Text(
-          //         'Enter Your Details and select an assembly to continue',
-          //         style: TextStyle(
-          //           color: Colors.white,
-          //           fontSize: 18,
-          //           fontWeight: FontWeight.bold,
-          //         ),
-          //         textAlign: TextAlign.center,
-          //       ),
-          //     ),
-          //   ),
-          // ),
           Expanded(
             child: GridView.count(
               crossAxisCount: 2,
@@ -176,12 +177,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 //PLATFORM
                 GestureDetector(
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => MyPlatform(),
-                      ),
-                    );
+                    _checkInternetAndNavigate(context, MyPlatform());
                   },
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -225,12 +221,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 //Pusher
                 GestureDetector(
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => MyPusher(),
-                      ),
-                    );
+                    _checkInternetAndNavigate(context, MyPusher());
                   },
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -274,12 +265,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 ///stirrer
                 GestureDetector(
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => MyStirrer(),
-                      ),
-                    );
+                    _checkInternetAndNavigate(context, MyStirrer());
                   },
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -320,113 +306,9 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 ),
 
-// //water
-//                 GestureDetector(
-//                   onTap: () {
-//                     Navigator.push(
-//                       context,
-//                       MaterialPageRoute(
-//                         builder: (context) =>
-//                             AssemblyDetailPageStirrer('WATER'),
-//                       ),
-//                     );
-//                   },
-//                   child: Padding(
-//                     padding: const EdgeInsets.all(8.0),
-//                     child: Container(
-//                       height: double.maxFinite / 2,
-//                       decoration: BoxDecoration(
-//                         color: Colors.orange,
-//                         borderRadius: BorderRadius.circular(15),
-//                         boxShadow: [
-//                           BoxShadow(
-//                             color: Colors.grey.withOpacity(0.5),
-//                             spreadRadius: 5,
-//                             blurRadius: 7,
-//                             offset: Offset(0, 3), // changes position of shadow
-//                           ),
-//                         ],
-//                       ),
-//                       child: Column(
-//                         mainAxisAlignment: MainAxisAlignment.center,
-//                         children: [
-//                           Text(
-//                             'WATER',
-//                             style: TextStyle(
-//                               color: Colors.white,
-//                               fontSize: 18,
-//                               fontWeight: FontWeight.bold,
-//                             ),
-//                           ),
-//                           SizedBox(height: 10), // Adjust as needed
-//                           Image.asset(
-//                             'lib/assets/logo.png', // Replace with your image asset path
-//                             height: 130, // Adjust as needed
-//                             width: 130, // Adjust as needed
-//                           ),
-//                         ],
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-// //OIL
-//                 GestureDetector(
-//                   onTap: () {
-//                     Navigator.push(
-//                       context,
-//                       MaterialPageRoute(
-//                         builder: (context) =>
-//                             AssemblyDetailPageStirrer('Your Assembly Name'),
-//                       ),
-//                     );
-//                   },
-//                   child: Padding(
-//                     padding: const EdgeInsets.all(8.0),
-//                     child: Container(
-//                       height: double.maxFinite / 2,
-//                       decoration: BoxDecoration(
-//                         color: Colors.orange,
-//                         borderRadius: BorderRadius.circular(15),
-//                         boxShadow: [
-//                           BoxShadow(
-//                             color: Colors.grey.withOpacity(0.5),
-//                             spreadRadius: 5,
-//                             blurRadius: 7,
-//                             offset: Offset(0, 3), // changes position of shadow
-//                           ),
-//                         ],
-//                       ),
-//                       child: Column(
-//                         mainAxisAlignment: MainAxisAlignment.center,
-//                         children: [
-//                           Text(
-//                             'OIL',
-//                             style: TextStyle(
-//                               color: Colors.white,
-//                               fontSize: 18,
-//                               fontWeight: FontWeight.bold,
-//                             ),
-//                           ),
-//                           SizedBox(height: 10), // Adjust as needed
-//                           Image.asset(
-//                             'lib/assets/logo.png', // Replace with your image asset path
-//                             height: 130, // Adjust as needed
-//                             width: 130, // Adjust as needed
-//                           ),
-//                         ],
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-                //Spice
                 GestureDetector(
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => MySpice(),
-                      ),
-                    );
+                    _checkInternetAndNavigate(context, MySpice());
                   },
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -469,13 +351,17 @@ class _SettingsPageState extends State<SettingsPage> {
                 //PCB
                 GestureDetector(
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => MyTOF(),
-                      ),
-                    );
+                    _checkInternetAndNavigate(context, MyTOF());
                   },
+                  // GestureDetector(
+                  //   onTap: () {
+                  //     Navigator.push(
+                  //       context,
+                  //       MaterialPageRoute(
+                  //         builder: (context) => MyTOF(),
+                  //       ),
+                  //     );
+                  //   },
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Container(
@@ -514,16 +400,20 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                   ),
                 ),
-                //GEAR PUMP
+                //INDUCTION
+                // GestureDetector(
+                // onTap: () {
+                //   Navigator.push(
+                //     context,
+                //     MaterialPageRoute(
+                //       builder: (context) => MyInduction(),
+                //     ),
+                //   );
+                // },
                 GestureDetector(
-                  // onTap: () {
-                  //   Navigator.push(
-                  //     context,
-                  //     MaterialPageRoute(
-                  //       builder: (context) => MyPcb(),
-                  //     ),
-                  //   );
-                  // },
+                  onTap: () {
+                    _checkInternetAndNavigate(context, MyInduction());
+                  },
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Container(
@@ -544,7 +434,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'GEAR PUMP',
+                            'INDUCTION',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 18,
@@ -623,13 +513,12 @@ class SettingsPageContent extends StatelessWidget {
   final TextEditingController employeeIdController;
 
   SettingsPageContent({
-    Key? key,
+    super.key,
     required this.selectedAssembly,
     required this.onAssemblyChanged,
   })  : emailController = TextEditingController(),
         nameController = TextEditingController(),
-        employeeIdController = TextEditingController(),
-        super(key: key) {
+        employeeIdController = TextEditingController() {
     _loadSavedData();
   }
   _loadSavedData() async {
@@ -746,7 +635,7 @@ class _DropdownButtonWidgetState extends State<DropdownButtonWidget> {
     // 'OIL',
     'SPICE',
     'TOF',
-    'GEAR PUMP',
+    'INDUCTION',
   ];
   String? email = '';
   String? name = '';
@@ -918,6 +807,14 @@ class _DropdownButtonWidgetState extends State<DropdownButtonWidget> {
           ),
         );
         break;
+      case 'INDUCTION':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MyInduction(),
+          ),
+        );
+        break;
 
       // Add cases for other assemblies if needed
 
@@ -946,23 +843,23 @@ class _DropdownButtonWidgetState extends State<DropdownButtonWidget> {
     Navigator.of(context).pop();
   }
 
-  _showSnackbarProgress() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'IN PROGRESS ',
-          style: TextStyle(color: Colors.white),
-        ),
-        duration: Duration(seconds: 2),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
-    );
+//   _showSnackbarProgress() {
+//     ScaffoldMessenger.of(context).showSnackBar(
+//       SnackBar(
+//         content: Text(
+//           'IN PROGRESS ',
+//           style: TextStyle(color: Colors.white),
+//         ),
+//         duration: Duration(seconds: 2),
+//         backgroundColor: Colors.green,
+//         behavior: SnackBarBehavior.floating,
+//         shape: RoundedRectangleBorder(
+//           borderRadius: BorderRadius.circular(10),
+//         ),
+//       ),
+//     );
 
-    // Close the dialog
-    Navigator.of(context).pop();
-  }
+//     // Close the dialog
+//     Navigator.of(context).pop();
+//   }
 }

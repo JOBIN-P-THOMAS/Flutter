@@ -5,7 +5,7 @@ import 'package:quality_control_nosh/qr_code_scanner_screen.dart';
 import 'package:quality_control_nosh/Platform/platform_action.dart';
 
 class MyPlatform extends StatelessWidget {
-  const MyPlatform({Key? key}) : super(key: key);
+  const MyPlatform({super.key});
 
   @override
   Widget build(BuildContext context) {

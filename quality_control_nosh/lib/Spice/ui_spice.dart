@@ -5,7 +5,7 @@ import 'package:quality_control_nosh/qr_code_scanner_screen.dart';
 import 'package:quality_control_nosh/Spice/spice_action.dart';
 
 class MySpice extends StatelessWidget {
-  const MySpice({Key? key}) : super(key: key);
+  const MySpice({super.key});
 
   @override
   Widget build(BuildContext context) {

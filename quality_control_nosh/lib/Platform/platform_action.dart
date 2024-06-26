@@ -1,4 +1,4 @@
-// ignore_for_file: library_private_types_in_public_api, prefer_final_fields, avoid_print, prefer_const_constructors, unused_element, sort_child_properties_last, prefer_const_declarations, sized_box_for_whitespace, use_build_context_synchronously, prefer_const_literals_to_create_immutables, depend_on_referenced_packages, unnecessary_import, unused_import, curly_braces_in_flow_control_structures
+// ignore_for_file: library_private_types_in_public_api, prefer_final_fields, avoid_print, prefer_const_constructors, unused_element, sort_child_properties_last, prefer_const_declarations, sized_box_for_whitespace, use_build_context_synchronously, prefer_const_literals_to_create_immutables, depend_on_referenced_packages, unnecessary_import, unused_import, curly_braces_in_flow_control_structures, use_super_parameters
 
 import 'dart:async';
 import 'dart:typed_data';
@@ -14,6 +14,7 @@ import 'package:path_provider/path_provider.dart';
 // import 'package:audioplayers/audioplayers.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:http/http.dart' as http;
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class PlatformAction extends StatefulWidget {
   final String qrData;
@@ -204,7 +205,7 @@ class _PlatformActionState extends State<PlatformAction> {
     bool waitingForResponse = true;
 
     // Start a timer to stop waiting after 26 seconds
-    Timer timeoutTimer = Timer(Duration(seconds: 26), () {
+    Timer timeoutTimer = Timer(Duration(seconds: 66), () {
       if (waitingForResponse && mounted) {
         // If no response has been received and the widget is still mounted
         print('Response timeout, stopping playback');
@@ -237,62 +238,70 @@ class _PlatformActionState extends State<PlatformAction> {
 
   void _stopPlaying() async {
     try {
-      final directory = Directory('/storage/emulated/0/Download');
+      // Request storage permissions
+      if (await Permission.storage.request().isGranted) {
+        // Get the external storage directory
+        final directory = await getExternalStorageDirectory();
 
-      // Check if the Download directory exists, create it if not
-      if (!await directory.exists()) {
-        await directory.create(recursive: true);
-      }
+        if (directory == null) {
+          print('Could not get the external storage directory');
+          return;
+        }
 
-      final qrCodeData = widget.qrData;
-      final now = DateTime.now();
-      final timestamp =
-          '${now.year}-${now.month}-${now.day}_${now.hour}-${now.minute}-${now.second}';
-      // final timestamp = DateTime.now().minute;
-      String fileName = '$qrCodeData-$timestamp.txt';
-      String fileNameAWS = '$qrCodeData-$timestamp-Fail-Platform';
-      // String fileName = '$qrCodeData.txt';
-      String filePath = '${directory.path}/$fileName';
+        // Check if the Download directory exists, create it if not
+        final downloadDir = Directory('${directory.path}/Download');
+        if (!await downloadDir.exists()) {
+          await downloadDir.create(recursive: true);
+        }
 
-      // Check if the file already exists in the Download directory
-      int count = 1;
-      while (await File(filePath).exists()) {
-        // File already exists, generate a new file name with a count
-        fileName = '$qrCodeData-$count.txt';
-        filePath = '${directory.path}/$fileName';
-        count++;
-      }
+        final qrCodeData = widget.qrData;
+        final now = DateTime.now();
+        final timestamp =
+            '${now.year}-${now.month}-${now.day}_${now.hour}-${now.minute}-${now.second}';
+        String fileName = '$qrCodeData-$timestamp-Fail-Platform.txt';
+        String fileNameAWS = '$qrCodeData-$timestamp-Fail-Platform';
+        String filePath = '${downloadDir.path}/$fileName';
 
-      final file = File(filePath);
+        // Check if the file already exists in the Download directory
+        int count = 1;
+        while (await File(filePath).exists()) {
+          // File already exists, generate a new file name with a count
+          fileName = '$qrCodeData-$count.txt';
+          filePath = '${downloadDir.path}/$fileName';
+          count++;
+        }
 
-      String content = 'Sent Commands:\n';
-      for (final command in _sentCommands) {
-        content += '$command\n';
-      }
-      content += '\nReceived Commands:\n';
-      for (final command in _receivedCommands) {
-        content += '$command\n';
-      }
+        final file = File(filePath);
 
-      await file.writeAsString(content);
+        String content = 'Sent Commands:\n';
+        for (final command in _sentCommands) {
+          content += '$command\n';
+        }
+        content += '\nReceived Commands:\n';
+        for (final command in _receivedCommands) {
+          content += '$command\n';
+        }
 
-      print('Commands saved to $filePath');
+        await file.writeAsString(content);
 
-      final apiUrl =
-          'https://fls8oe8xp7.execute-api.ap-south-1.amazonaws.com/dev/nosh-test-S3?file_name=$fileNameAWS';
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        body: content,
-        headers: {
-          'Content-Type': 'text/plain'
-        }, // Specify content type as text/plain
-      );
+        print('Commands saved to $filePath');
 
-      if (response.statusCode == 200) {
-        print('Commands sent to S3 successfully');
+        final apiUrl =
+            'https://fls8oe8xp7.execute-api.ap-south-1.amazonaws.com/dev/nosh-test-S3?file_name=$fileNameAWS';
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          body: content,
+          headers: {'Content-Type': 'text/plain'},
+        );
+
+        if (response.statusCode == 200) {
+          print('Commands sent to S3 successfully');
+        } else {
+          print(
+              'Failed to send commands to S3. Status code: ${response.statusCode}');
+        }
       } else {
-        print(
-            'Failed to send commands to S3. Status code: ${response.statusCode}');
+        print('Storage permission denied');
       }
     } catch (e) {
       print('Error saving and sending commands: $e');
@@ -376,7 +385,6 @@ class _PlatformActionState extends State<PlatformAction> {
                       MaterialPageRoute(builder: (context) => MyPlatform()),
                       (route) => false, // Remove all routes until the new route
                     );
-                    // Navigate to MyPusher page
                   },
                   child: Text('OK', style: TextStyle(color: Colors.red)),
                 ),
@@ -390,68 +398,100 @@ class _PlatformActionState extends State<PlatformAction> {
 
   void _success() async {
     try {
-      final directory = Directory('/storage/emulated/0/Download');
+      // Request storage permissions
+      if (await Permission.storage.request().isGranted) {
+        // Get the external storage directory
+        final directory = await getExternalStorageDirectory();
 
-      // Check if the Download directory exists, create it if not
-      if (!await directory.exists()) {
-        await directory.create(recursive: true);
-      }
+        if (directory == null) {
+          print('Could not get the external storage directory');
+          return;
+        }
 
-      final qrCodeData = widget.qrData;
-      final now = DateTime.now();
-      final timestamp =
-          '${now.year}-${now.month}-${now.day}_${now.hour}-${now.minute}-${now.second}';
-      // final timestamp = DateTime.now().minute;
-      String fileName = '$qrCodeData-$timestamp.txt';
-      String fileNameAWS = '$qrCodeData-$timestamp-Success-Platform';
-      // String fileName = '$qrCodeData.txt';
-      String filePath = '${directory.path}/$fileName';
+        // Check if the Download directory exists, create it if not
+        final downloadDir = Directory('${directory.path}/Download');
+        if (!await downloadDir.exists()) {
+          await downloadDir.create(recursive: true);
+        }
 
-      // Check if the file already exists in the Download directory
-      int count = 1;
-      while (await File(filePath).exists()) {
-        // File already exists, generate a new file name with a count
-        fileName = '$qrCodeData-$count.txt';
-        filePath = '${directory.path}/$fileName';
-        count++;
-      }
+        final qrCodeData = widget.qrData;
+        final now = DateTime.now();
+        final timestamp =
+            '${now.year}-${now.month}-${now.day}_${now.hour}-${now.minute}-${now.second}';
+        String fileName = '$qrCodeData-$timestamp-Success-Platform.txt';
+        String fileNameAWS = '$qrCodeData-$timestamp-Success-Platform';
+        String filePath = '${downloadDir.path}/$fileName';
 
-      final file = File(filePath);
+        // Check if the file already exists in the Download directory
+        int count = 1;
+        while (await File(filePath).exists()) {
+          // File already exists, generate a new file name with a count
+          fileName = '$qrCodeData-$count.txt';
+          filePath = '${downloadDir.path}/$fileName';
+          count++;
+        }
 
-      String content = 'Sent Commands:\n';
-      for (final command in _sentCommands) {
-        content += '$command\n';
-      }
-      content += '\nReceived Commands:\n';
-      for (final command in _receivedCommands) {
-        content += '$command\n';
-      }
+        final file = File(filePath);
 
-      await file.writeAsString(content);
+        String content = 'Sent Commands:\n';
+        for (final command in _sentCommands) {
+          content += '$command\n';
+        }
+        content += '\nReceived Commands:\n';
+        for (final command in _receivedCommands) {
+          content += '$command\n';
+        }
 
-      print('Commands saved to $filePath');
+        await file.writeAsString(content);
 
-      final apiUrl =
-          'https://fls8oe8xp7.execute-api.ap-south-1.amazonaws.com/dev/nosh-test-S3?file_name=$fileNameAWS';
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        body: content,
-        headers: {
-          'Content-Type': 'text/plain'
-        }, // Specify content type as text/plain
-      );
+        print('Commands saved to $filePath');
 
-      if (response.statusCode == 200) {
-        print('Commands sent to S3 successfully');
+        final apiUrl =
+            'https://fls8oe8xp7.execute-api.ap-south-1.amazonaws.com/dev/nosh-test-S3?file_name=$fileNameAWS';
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          body: content,
+          headers: {'Content-Type': 'text/plain'},
+        );
+
+        if (response.statusCode == 200) {
+          print('Commands sent to S3 successfully');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Commands uploaded to S3 successfully'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          print(
+              'Failed to send commands to S3. Status code: ${response.statusCode}');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to upload commands to S3'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       } else {
-        print(
-            'Failed to send commands to S3. Status code: ${response.statusCode}');
+        print('Storage permission denied');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Storage permission denied'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } catch (e) {
       print('Error saving and sending commands: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error occurred: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
 
-    // Show a custom dialog indicating assembly failure
+    // Show a custom dialog indicating assembly success
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -527,9 +567,8 @@ class _PlatformActionState extends State<PlatformAction> {
                     Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(builder: (context) => MyPlatform()),
-                      (route) => false, // Remove all routes until the new route
+                      (route) => false,
                     );
-                    // Navigate to MyPusher page
                   },
                   child: Text('OK', style: TextStyle(color: Colors.red)),
                 ),
