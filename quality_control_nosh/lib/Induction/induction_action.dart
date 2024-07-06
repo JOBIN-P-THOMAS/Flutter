@@ -213,7 +213,7 @@ class _InductionActionState extends State<InductionAction> {
     bool waitingForResponse = true;
 
     // Start a timer to stop waiting after 26 seconds
-    Timer timeoutTimer = Timer(Duration(seconds: 130), () {
+    Timer timeoutTimer = Timer(Duration(seconds: 150), () {
       if (waitingForResponse && mounted) {
         // If no response has been received and the widget is still mounted
         print('Response timeout, stopping playback');
